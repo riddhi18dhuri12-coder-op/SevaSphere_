@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Signup - SevaSphere</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+<h2>Admin Registration - SevaSphere</h2>
+
+<form id="signupForm">
+    <input type="text" id="name" placeholder="Full Name" required><br><br>
+    <input type="email" id="email" placeholder="Email" required><br><br>
+    <input type="password" id="password" placeholder="Password (min 6 chars)" required><br><br>
+    <button type="submit">Create Account</button>
+</form>
+
+<p><a href="admin-login.html">Already have account? Login</a></p>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA-z1Zx-0qAj6_FGiclcXFdIjiKSjXlUKw",
+  authDomain: "sevasphere-6dce7.firebaseapp.com",
+  projectId: "sevasphere-6dce7",
+  storageBucket: "sevasphere-6dce7.appspot.com",
+  messagingSenderId: "930986469572",
+  appId: "1:930986469572:web:7c62c3e6ff7c3f90d98191"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+document.getElementById("signupForm").addEventListener("submit", async (e)=>{
+    e.preventDefault();
+    const name = name.value;
+    const email = email.value;
+    const password = password.value;
+
+    const userCred = await createUserWithEmailAndPassword(auth, email, password);
+
+    await setDoc(doc(db,"users",userCred.user.uid),{
+        name,
+        email,
+        role:"admin",
+        createdAt: serverTimestamp()
+    });
+
+    alert("Admin Registered Successfully!");
+    window.location.href="admin-dashboard.html";
+});
+</script>
+</body>
+</html>
