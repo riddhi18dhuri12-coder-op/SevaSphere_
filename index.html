@@ -1,0 +1,60 @@
+<!-- Firebase + Auth Redirect Script -->
+<script type="module">
+  // Firebase Core
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-analytics.js";
+
+  // Firebase Auth
+  import { 
+    getAuth, 
+    onAuthStateChanged 
+  } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+
+  // Firebase Firestore
+  import { 
+    getFirestore, 
+    doc, 
+    getDoc 
+  } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+
+
+  // 🔥 Your Firebase Configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyA-z1Zx-0qAj6_FGiclcXFdIjiKSjXlUKw",
+    authDomain: "sevasphere-6dce7.firebaseapp.com",
+    projectId: "sevasphere-6dce7",
+    storageBucket: "sevasphere-6dce7.firebasestorage.app",
+    messagingSenderId: "930986469572",
+    appId: "1:930986469572:web:7c62c3e6ff7c3f90d98191",
+    measurementId: "G-KR6K2EKCW6"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  // 👇 Auto Redirect If Already Logged In
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      try {
+        const userRef = doc(db, "users", user.uid);
+        const userSnap = await getDoc(userRef);
+
+        if (userSnap.exists()) {
+          const role = userSnap.data().role;
+
+          if (role === "admin") {
+            window.location.href = "admin/admin-dashboard.html";
+          } 
+          else if (role === "volunteer") {
+            window.location.href = "volunteer/volunteer-dashboard.html";
+          }
+        }
+      } catch (error) {
+        console.error("Error checking role:", error);
+      }
+    }
+  });
+</script>
