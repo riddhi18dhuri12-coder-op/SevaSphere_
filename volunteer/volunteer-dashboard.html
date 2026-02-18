@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Volunteer Dashboard - SevaSphere</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+    margin:0;
+    font-family:'Segoe UI',sans-serif;
+    background:linear-gradient(135deg,#FF9800,#F57C00);
+}
+.dashboard{
+    display:flex;
+    min-height:100vh;
+}
+.sidebar{
+    width:260px;
+    background:rgba(255,255,255,0.1);
+    backdrop-filter:blur(15px);
+    padding:25px;
+    color:white;
+}
+.sidebar h2{
+    margin-bottom:30px;
+}
+.sidebar a{
+    display:block;
+    color:white;
+    text-decoration:none;
+    padding:10px 0;
+}
+.main{
+    flex:1;
+    padding:40px;
+    background:#f5f5f5;
+}
+.card{
+    background:white;
+    padding:20px;
+    border-radius:12px;
+    box-shadow:0 5px 20px rgba(0,0,0,0.1);
+    margin-bottom:20px;
+}
+.logout{
+    background:#F57C00;
+    color:white;
+    border:none;
+    padding:8px 15px;
+    border-radius:6px;
+    cursor:pointer;
+}
+</style>
+</head>
+<body>
+
+<div class="dashboard">
+    <div class="sidebar">
+        <h2>🌍 SevaSphere</h2>
+        <a href="#">Dashboard</a>
+        <a href="events.html">Browse Events</a>
+        <a href="#" id="logoutBtn">Logout</a>
+    </div>
+
+    <div class="main">
+        <h1>Volunteer Dashboard</h1>
+        <div id="volunteerName">Loading...</div>
+
+        <div class="card">
+            <h3>Available Events</h3>
+            <h2 id="totalEvents">0</h2>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA-z1Zx-0qAj6_FGiclcXFdIjiKSjXlUKw",
+  authDomain: "sevasphere-6dce7.firebaseapp.com",
+  projectId: "sevasphere-6dce7",
+  storageBucket: "sevasphere-6dce7.appspot.com",
+  messagingSenderId: "930986469572",
+  appId: "1:930986469572:web:7c62c3e6ff7c3f90d98191"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+onAuthStateChanged(auth, async (user)=>{
+    if(!user){
+        window.location.href="volunteer-login.html";
+        return;
+    }
+
+    const userDoc = await getDoc(doc(db,"users",user.uid));
+
+    if(!userDoc.exists() || userDoc.data().role!=="volunteer"){
+        window.location.href="../index.html";
+        return;
+    }
+
+    document.getElementById("volunteerName").innerText=userDoc.data().name;
+
+    const events = await getDocs(collection(db,"events"));
+    document.getElementById("totalEvents").innerText=events.size;
+});
+
+document.getElementById("logoutBtn").addEventListener("click",()=>{
+    signOut(auth);
+    window.location.href="../index.html";
+});
+</script>
+
+</body>
+</html>
