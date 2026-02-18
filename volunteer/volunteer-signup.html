@@ -1,56 +1,110 @@
 <!DOCTYPE html>
 <html>
 <head>
+<meta charset="UTF-8">
 <title>Volunteer Signup - SevaSphere</title>
-</head>
-<body>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<h2>Volunteer Registration</h2>
+<style>
+body{
+margin:0;
+font-family:'Segoe UI',sans-serif;
+background:linear-gradient(135deg,#FF9800,#F57C00);
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+}
+.card{
+background:rgba(255,255,255,0.15);
+backdrop-filter:blur(20px);
+padding:40px;
+border-radius:16px;
+width:350px;
+color:white;
+box-shadow:0 10px 40px rgba(0,0,0,0.3);
+}
+.card h2{text-align:center;margin-bottom:20px;}
+input{
+width:100%;
+padding:12px;
+margin-bottom:15px;
+border:none;
+border-radius:8px;
+outline:none;
+}
+button{
+width:100%;
+padding:12px;
+background:white;
+color:#F57C00;
+border:none;
+border-radius:8px;
+font-weight:bold;
+cursor:pointer;
+}
+button:hover{background:#f0f0f0;}
+.link{text-align:center;margin-top:15px;}
+.link a{color:white;text-decoration:none;font-weight:600;}
+.error{color:#ffe0e0;text-align:center;margin-bottom:10px;}
+</style>
+</head>
+
+<body>
+<div class="card">
+<h2>👤 Volunteer Registration</h2>
+
+<div id="error" class="error"></div>
 
 <form id="signupForm">
-<input type="text" id="name" placeholder="Full Name" required><br><br>
-<input type="email" id="email" placeholder="Email" required><br><br>
-<input type="password" id="password" placeholder="Password" required><br><br>
+<input type="text" id="name" placeholder="Full Name" required>
+<input type="email" id="email" placeholder="Email" required>
+<input type="password" id="password" placeholder="Password (min 6 chars)" required>
 <button type="submit">Create Account</button>
 </form>
+
+<div class="link">
+<p>Already have account? <a href="volunteer-login.html">Login</a></p>
+</div>
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
 import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyA-z1Zx-0qAj6_FGiclcXFdIjiKSjXlUKw",
-  authDomain: "sevasphere-6dce7.firebaseapp.com",
-  projectId: "sevasphere-6dce7",
-  storageBucket: "sevasphere-6dce7.appspot.com",
-  messagingSenderId: "930986469572",
-  appId: "1:930986469572:web:7c62c3e6ff7c3f90d98191"
+const firebaseConfig={
+apiKey:"AIzaSyA-z1Zx-0qAj6_FGiclcXFdIjiKSjXlUKw",
+authDomain:"sevasphere-6dce7.firebaseapp.com",
+projectId:"sevasphere-6dce7",
+storageBucket:"sevasphere-6dce7.appspot.com",
+messagingSenderId:"930986469572",
+appId:"1:930986469572:web:7c62c3e6ff7c3f90d98191"
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app);
+const db=getFirestore(app);
 
-document.getElementById("signupForm").addEventListener("submit", async(e)=>{
+document.getElementById("signupForm").addEventListener("submit",async(e)=>{
 e.preventDefault();
 
-const name = name.value;
-const email = email.value;
-const password = password.value;
-
-const userCred = await createUserWithEmailAndPassword(auth,email,password);
+try{
+const userCred=await createUserWithEmailAndPassword(auth,email.value,password.value);
 
 await setDoc(doc(db,"users",userCred.user.uid),{
-    name,
-    email,
-    role:"volunteer",
-    createdAt: serverTimestamp()
+name:name.value,
+email:email.value,
+role:"volunteer",
+createdAt:serverTimestamp()
 });
 
-alert("Volunteer Registered!");
 window.location.href="volunteer-dashboard.html";
+}catch(err){
+document.getElementById("error").innerText=err.message;
+}
 });
 </script>
+
 </body>
 </html>
