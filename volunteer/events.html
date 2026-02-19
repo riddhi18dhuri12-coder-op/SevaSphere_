@@ -14,134 +14,130 @@
       color: #1e6091;
     }
 
+    .top-bar {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:20px;
+    }
+
+    .view-saved-btn {
+      background:#1e6091;
+      color:white;
+      border:none;
+      padding:10px 18px;
+      border-radius:10px;
+      cursor:pointer;
+    }
+
     .filters {
-      display: flex;
-      gap: 15px;
-      margin-bottom: 30px;
-      flex-wrap: wrap;
+      display:flex;
+      gap:15px;
+      margin-bottom:30px;
+      flex-wrap:wrap;
     }
 
     input, select {
-      padding: 12px;
-      border-radius: 10px;
-      border: 1px solid #ccc;
-      flex: 1;
+      padding:12px;
+      border-radius:10px;
+      border:1px solid #ccc;
+      flex:1;
     }
 
     .clear-btn {
-      background: #1e6091;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      padding: 12px 18px;
-      cursor: pointer;
+      background:#1e6091;
+      color:white;
+      border:none;
+      border-radius:10px;
+      padding:12px 18px;
+      cursor:pointer;
     }
 
-    /* EVENT CARD */
     .event-card {
-      background: #ffffff;
-      border-radius: 20px;
-      padding: 25px;
-      margin-bottom: 25px;
-      box-shadow: 0 8px 25px rgba(0,0,0,0.08);
-      transition: 0.2s;
-    }
-
-    .event-card:hover {
-      transform: translateY(-4px);
+      background:#fff;
+      border-radius:20px;
+      padding:25px;
+      margin-bottom:25px;
+      box-shadow:0 8px 25px rgba(0,0,0,0.08);
+      position:relative;
     }
 
     .event-title {
-      font-size: 22px;
-      font-weight: 700;
-      color: #0f172a;
-      margin-bottom: 15px;
+      font-size:22px;
+      font-weight:700;
+      margin-bottom:15px;
     }
 
     .badge {
-      display: inline-block;
-      padding: 8px 16px;
-      border-radius: 25px;
-      font-size: 14px;
-      font-weight: 600;
-      margin-right: 10px;
-      margin-bottom: 15px;
+      display:inline-block;
+      padding:8px 16px;
+      border-radius:25px;
+      font-size:14px;
+      font-weight:600;
+      margin-right:10px;
+      margin-bottom:15px;
     }
 
-    .badge-category {
-      background: #e0f2fe;
-      color: #0369a1;
-    }
-
-    .badge-city {
-      background: #dcfce7;
-      color: #15803d;
-    }
-
-    .event-info {
-      color: #475569;
-      margin-bottom: 5px;
-    }
+    .badge-category { background:#e0f2fe; color:#0369a1; }
+    .badge-city { background:#dcfce7; color:#15803d; }
 
     .button-row {
-      display: flex;
-      gap: 15px;
-      margin-top: 20px;
+      display:flex;
+      gap:15px;
+      margin-top:20px;
     }
 
     .apply-btn {
-      background: #52b69a;
-      color: white;
-      border: none;
-      padding: 12px 25px;
-      border-radius: 15px;
-      font-weight: 700;
-      cursor: pointer;
-      flex: 1;
+      background:#52b69a;
+      color:white;
+      border:none;
+      padding:12px 20px;
+      border-radius:15px;
+      cursor:pointer;
+      flex:1;
     }
 
     .save-btn {
-      background: #1e6091;
-      color: white;
-      border: none;
-      padding: 12px 25px;
-      border-radius: 15px;
-      font-weight: 700;
-      cursor: pointer;
-      flex: 1;
+      background:#1e6091;
+      color:white;
+      border:none;
+      padding:12px 20px;
+      border-radius:15px;
+      cursor:pointer;
+      flex:1;
     }
 
     .info-btn {
-      background: #94a3b8;
-      color: white;
-      border: none;
-      padding: 12px 20px;
-      border-radius: 15px;
-      cursor: pointer;
+      background:#94a3b8;
+      color:white;
+      border:none;
+      padding:12px 20px;
+      border-radius:15px;
+      cursor:pointer;
     }
 
     /* MODAL */
     .modal {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.5);
-      justify-content: center;
-      align-items: center;
+      display:none;
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,0.5);
+      justify-content:center;
+      align-items:center;
     }
 
     .modal-content {
-      background: white;
-      padding: 30px;
-      border-radius: 20px;
-      width: 400px;
-      max-width: 90%;
+      background:white;
+      padding:30px;
+      border-radius:20px;
+      width:400px;
+      max-width:90%;
     }
 
     .close-btn {
-      float: right;
-      cursor: pointer;
-      font-weight: bold;
+      float:right;
+      cursor:pointer;
+      font-weight:bold;
     }
 
   </style>
@@ -149,16 +145,15 @@
 
 <body>
 
-<h2>📂 Smart Events Feed</h2>
+<div class="top-bar">
+  <h2>📂 Smart Events Feed</h2>
+  <button id="viewSavedBtn" class="view-saved-btn">⭐ View Saved Events</button>
+</div>
 
 <div class="filters">
   <input id="searchInput" placeholder="Search event name...">
   <select id="categoryFilter">
     <option value="All">All Categories</option>
-    <option value="Tree Plantation">Tree Plantation</option>
-    <option value="Cleanliness">Cleanliness</option>
-    <option value="Teaching">Teaching</option>
-    <option value="Donation Drive">Donation Drive</option>
   </select>
   <select id="cityFilter">
     <option value="All">All Cities</option>
@@ -168,8 +163,8 @@
 
 <div id="eventsContainer"></div>
 
-<!-- MODAL -->
-<div class="modal" id="eventModal">
+<!-- INFO MODAL -->
+<div class="modal" id="infoModal">
   <div class="modal-content">
     <span class="close-btn" onclick="closeModal()">✖</span>
     <div id="modalContent"></div>
@@ -177,10 +172,9 @@
 </div>
 
 <script type="module">
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-import { getDatabase, ref, onValue, push, set } 
+import { getDatabase, ref, onValue, set, push } 
 from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
 
 const firebaseConfig = {
@@ -202,10 +196,15 @@ const searchInput = document.getElementById("searchInput");
 const categoryFilter = document.getElementById("categoryFilter");
 const cityFilter = document.getElementById("cityFilter");
 const clearBtn = document.getElementById("clearBtn");
+const viewSavedBtn = document.getElementById("viewSavedBtn");
 
 let allEvents = {};
+let savedEvents = {};
 let currentUser = null;
+let showSavedOnly = false;
 
+
+// AUTH CHECK
 onAuthStateChanged(auth, (user) => {
   if (!user) {
     alert("Login first");
@@ -213,30 +212,55 @@ onAuthStateChanged(auth, (user) => {
     return;
   }
   currentUser = user;
-  loadEvents();
+  loadData();
 });
 
-function loadEvents() {
+
+// FETCH EVENTS + SAVED
+function loadData() {
+
   onValue(ref(db, "events"), (snapshot) => {
     allEvents = snapshot.val() || {};
-    populateCities();
+    populateFilters();
     renderEvents();
   });
+
+  onValue(ref(db, "savedEvents/" + currentUser.uid), (snapshot) => {
+    savedEvents = snapshot.val() || {};
+    renderEvents();
+  });
+
 }
 
-function populateCities() {
+
+// UNIQUE FILTERS
+function populateFilters() {
+
+  const categories = new Set();
   const cities = new Set();
+
   Object.values(allEvents).forEach(event => {
+    if (event.category) categories.add(event.category);
     if (event.location) cities.add(event.location);
   });
 
+  categoryFilter.innerHTML = '<option value="All">All Categories</option>';
   cityFilter.innerHTML = '<option value="All">All Cities</option>';
+
+  categories.forEach(cat => {
+    categoryFilter.innerHTML += `<option value="${cat}">${cat}</option>`;
+  });
+
   cities.forEach(city => {
     cityFilter.innerHTML += `<option value="${city}">${city}</option>`;
   });
+
 }
 
+
+// RENDER EVENTS
 function renderEvents() {
+
   const searchText = searchInput.value.toLowerCase();
   const selectedCategory = categoryFilter.value;
   const selectedCity = cityFilter.value;
@@ -245,11 +269,15 @@ function renderEvents() {
 
   Object.entries(allEvents).forEach(([eventId, event]) => {
 
+    if (showSavedOnly && !savedEvents[eventId]) return;
+
     if (
       (selectedCategory !== "All" && event.category !== selectedCategory) ||
       (selectedCity !== "All" && event.location !== selectedCity) ||
       (!event.title.toLowerCase().includes(searchText))
     ) return;
+
+    const isSaved = savedEvents[eventId];
 
     const card = document.createElement("div");
     card.className = "event-card";
@@ -260,20 +288,25 @@ function renderEvents() {
       <span class="badge badge-category">${event.category}</span>
       <span class="badge badge-city">${event.location}</span>
 
-      <div class="event-info"><b>NGO:</b> ${event.ngo}</div>
-      <div class="event-info"><b>Date:</b> ${event.date}</div>
+      <div><b>NGO:</b> ${event.ngo}</div>
+      <div><b>Date:</b> ${event.date}</div>
 
       <div class="button-row">
         <button class="apply-btn" onclick="applyEvent('${eventId}')">Apply</button>
-        <button class="save-btn" onclick="saveEvent('${eventId}')">⭐ Save</button>
+        <button class="save-btn" onclick="toggleSave('${eventId}')">
+          ${isSaved ? "★ Saved" : "☆ Save"}
+        </button>
         <button class="info-btn" onclick="showInfo('${eventId}')">ℹ</button>
       </div>
     `;
 
     eventsContainer.appendChild(card);
   });
+
 }
 
+
+// APPLY
 window.applyEvent = async function(eventId) {
   const newAppRef = push(ref(db, "applications"));
   await set(newAppRef, {
@@ -285,11 +318,19 @@ window.applyEvent = async function(eventId) {
   alert("Applied Successfully 🎉");
 };
 
-window.saveEvent = async function(eventId) {
-  await set(ref(db, "savedEvents/" + currentUser.uid + "/" + eventId), true);
-  alert("Event Saved ⭐");
+
+// SAVE / UNSAVE
+window.toggleSave = async function(eventId) {
+  const saveRef = ref(db, "savedEvents/" + currentUser.uid + "/" + eventId);
+  if (savedEvents[eventId]) {
+    await set(saveRef, null);
+  } else {
+    await set(saveRef, true);
+  }
 };
 
+
+// INFO MODAL
 window.showInfo = function(eventId) {
   const event = allEvents[eventId];
   document.getElementById("modalContent").innerHTML = `
@@ -301,13 +342,23 @@ window.showInfo = function(eventId) {
     <p><b>NGO:</b> ${event.ngo}</p>
     <p>${event.description}</p>
   `;
-  document.getElementById("eventModal").style.display = "flex";
+  document.getElementById("infoModal").style.display = "flex";
 };
 
 window.closeModal = function() {
-  document.getElementById("eventModal").style.display = "none";
+  document.getElementById("infoModal").style.display = "none";
 };
 
+
+// TOGGLE SAVED VIEW
+viewSavedBtn.addEventListener("click", () => {
+  showSavedOnly = !showSavedOnly;
+  viewSavedBtn.innerText = showSavedOnly ? "🔙 Back to All Events" : "⭐ View Saved Events";
+  renderEvents();
+});
+
+
+// FILTER EVENTS
 searchInput.addEventListener("input", renderEvents);
 categoryFilter.addEventListener("change", renderEvents);
 cityFilter.addEventListener("change", renderEvents);
