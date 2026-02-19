@@ -5,23 +5,26 @@
     <title>SevaSphere - NGO Volunteer Management System</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: Arial, sans-serif;
+            font-family: 'Poppins', sans-serif;
         }
 
         body {
             line-height: 1.6;
+            color: #111;
         }
 
         /* ================= NAVBAR ================= */
         .navbar {
-            background-color: #ffffff;
-            padding: 15px 0;
-            border-bottom: 3px solid #2E7D32;
+            background: #ffffff;
+            padding: 20px 0;
         }
 
         .container {
@@ -38,63 +41,89 @@
 
         .navbar-brand {
             font-size: 22px;
-            font-weight: bold;
+            font-weight: 700;
             text-decoration: none;
-            color: #2E7D32;
+            color: #111;
         }
 
         .navbar-menu {
             display: flex;
-            gap: 25px;
+            gap: 40px;
         }
 
         .navbar-menu a {
             text-decoration: none;
-            color: #333;
+            color: #111;
             font-weight: 500;
-            transition: 0.3s ease;
+            position: relative;
         }
 
-        .navbar-menu a:hover {
-            color: #2E7D32;
+        .navbar-menu a::after {
+            content: "";
+            width: 0;
+            height: 2px;
+            background: #111;
+            position: absolute;
+            left: 0;
+            bottom: -6px;
+            transition: 0.3s;
         }
 
-        /* ================= HERO ================= */
+        .navbar-menu a:hover::after {
+            width: 100%;
+        }
+
+        /* ================= HERO SPLIT ================= */
         .hero {
-            background: linear-gradient(135deg, #2E7D32 0%, #1B5E20 100%);
+            display: flex;
+            min-height: 90vh;
+        }
+
+        .hero-left {
+            width: 50%;
+            background: #1E3A8A;
             color: white;
-            padding: 6rem 0;
-            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 100px;
         }
 
-        .hero h1 {
-            font-size: 3rem;
-            margin-bottom: 1rem;
+        .hero-left h1 {
+            font-size: 70px;
+            font-weight: 800;
+            line-height: 1.05;
+            letter-spacing: 2px;
         }
 
-        .hero p {
-            max-width: 700px;
-            margin: 0 auto 2rem;
-            font-size: 1.1rem;
+        .hero-left p {
+            margin-top: 25px;
+            font-size: 18px;
+            max-width: 450px;
+            opacity: 0.9;
+        }
+
+        .hero-buttons {
+            margin-top: 40px;
+            display: flex;
+            gap: 20px;
         }
 
         .btn {
-            padding: 12px 28px;
+            padding: 14px 30px;
             border-radius: 6px;
             text-decoration: none;
             font-weight: 600;
-            display: inline-block;
-            margin: 5px;
             transition: 0.3s;
         }
 
         .btn-light {
             background: white;
-            color: #2E7D32;
+            color: #1E3A8A;
         }
 
         .btn-light:hover {
-            background: #f2f2f2;
+            background: #f1f5f9;
         }
 
         .btn-outline-light {
@@ -104,13 +133,24 @@
 
         .btn-outline-light:hover {
             background: white;
-            color: #2E7D32;
+            color: #1E3A8A;
+        }
+
+        .hero-right {
+            width: 50%;
+            background: #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 120px;
+            font-weight: 800;
+            color: #111;
         }
 
         /* ================= STATS ================= */
         .stats-section {
-            background: #f4f4f4;
-            padding: 4rem 0;
+            background: #f8fafc;
+            padding: 5rem 0;
             text-align: center;
         }
 
@@ -118,66 +158,87 @@
             display: flex;
             justify-content: space-around;
             flex-wrap: wrap;
-            gap: 20px;
+            gap: 30px;
         }
 
         .stat-item h3 {
-            font-size: 2rem;
-            color: #2E7D32;
+            font-size: 2.5rem;
+            color: #1E3A8A;
         }
 
         /* ================= FEATURES ================= */
         .features {
-            padding: 5rem 0;
+            padding: 6rem 0;
             background: #ffffff;
             text-align: center;
         }
 
         .feature-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 2rem;
-            margin-top: 2rem;
+            margin-top: 3rem;
         }
 
         .feature-card {
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            padding: 2.5rem;
+            border-radius: 16px;
+            background: #ffffff;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            transition: 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px);
         }
 
         .feature-card h3 {
             margin-bottom: 10px;
-            color: #2E7D32;
+            color: #1E3A8A;
         }
 
         /* ================= CTA ================= */
         .cta-section {
-            padding: 4rem 0;
+            padding: 5rem 0;
             text-align: center;
-            background: #f8f9fa;
+            background: #1E3A8A;
+            color: white;
+        }
+
+        .cta-section .btn-light {
+            background: white;
+            color: #1E3A8A;
         }
 
         /* ================= FOOTER ================= */
         footer {
-            background: #1B5E20;
+            background: #111;
             color: white;
             text-align: center;
-            padding: 20px 0;
+            padding: 25px 0;
         }
 
+        /* ================= RESPONSIVE ================= */
         @media(max-width:768px) {
+
+            .hero {
+                flex-direction: column;
+            }
+
+            .hero-left,
+            .hero-right {
+                width: 100%;
+                padding: 50px;
+                text-align: center;
+            }
+
+            .hero-left h1 {
+                font-size: 40px;
+            }
+
             .navbar-menu {
-                flex-direction: column;
-                gap: 10px;
-            }
-
-            .hero h1 {
-                font-size: 2rem;
-            }
-
-            .stats-grid {
-                flex-direction: column;
+                gap: 15px;
+                font-size: 14px;
             }
         }
     </style>
@@ -198,13 +259,27 @@
     </div>
 </nav>
 
-<!-- HERO -->
+<!-- HERO SPLIT -->
 <section class="hero">
-    <div class="container">
-        <h1>Welcome to SevaSphere</h1>
-        <p>Connecting passionate volunteers with meaningful causes. Empowering NGOs to manage events and volunteers effortlessly.</p>
-        <a href="volunteer/volunteer-signup.html" class="btn btn-light">Join as Volunteer</a>
-        <a href="admin/admin-signup.html" class="btn btn-outline-light">Register NGO</a>
+    <div class="hero-left">
+        <h1>
+            CONNECT <br>
+            VOLUNTEERS + <br>
+            NGOS
+        </h1>
+        <p>
+            Connecting passionate volunteers with meaningful causes.
+            Empowering NGOs to manage events and volunteers effortlessly.
+        </p>
+
+        <div class="hero-buttons">
+            <a href="volunteer/volunteer-signup.html" class="btn btn-light">Join as Volunteer</a>
+            <a href="admin/admin-signup.html" class="btn btn-outline-light">Register NGO</a>
+        </div>
+    </div>
+
+    <div class="hero-right">
+        IMPACT
     </div>
 </section>
 

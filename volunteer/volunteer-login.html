@@ -92,10 +92,8 @@ loginForm.addEventListener("submit", async (e) => {
   const password = document.getElementById("password").value.trim();
 
   try {
-    // Firebase Auth Login
     const userCred = await signInWithEmailAndPassword(auth, email, password);
 
-    // Get role from Firestore
     const userDoc = await getDoc(doc(db, "users", userCred.user.uid));
 
     if (!userDoc.exists()) {
@@ -103,7 +101,6 @@ loginForm.addEventListener("submit", async (e) => {
       return;
     }
 
-    // Check role
     if (userDoc.data().role !== "volunteer") {
       errorBox.innerText = "You are not registered as a Volunteer!";
       return;
@@ -113,7 +110,7 @@ loginForm.addEventListener("submit", async (e) => {
 
     setTimeout(() => {
       window.location.href = "volunteer-dashboard.html";
-    }, 800);
+    }, 700);
 
   } catch (error) {
     errorBox.innerText = error.message;

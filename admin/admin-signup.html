@@ -1,72 +1,92 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
 <title>Admin Signup - SevaSphere</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
 body{
-margin:0;font-family:'Segoe UI',sans-serif;
-background:linear-gradient(135deg,#1B5E20,#2E7D32);
-display:flex;justify-content:center;align-items:center;height:100vh;
+    margin:0;
+    font-family:Segoe UI;
+    background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
 }
 .card{
-background:rgba(255,255,255,0.15);
-backdrop-filter:blur(20px);
-padding:40px;border-radius:16px;width:350px;
-color:white;box-shadow:0 10px 40px rgba(0,0,0,0.3);
+    background:rgba(255,255,255,0.1);
+    backdrop-filter:blur(15px);
+    padding:40px;
+    width:350px;
+    border-radius:15px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.3);
+    text-align:center;
+    color:white;
 }
-.card h2{text-align:center;margin-bottom:20px;}
-input{width:100%;padding:12px;margin-bottom:15px;border:none;border-radius:8px;}
-button{width:100%;padding:12px;background:white;color:#1B5E20;border:none;border-radius:8px;font-weight:bold;}
-button:hover{background:#f0f0f0;}
-.link{text-align:center;margin-top:15px;}
-.link a{color:white;text-decoration:none;font-weight:600;}
+input{
+    width:100%;
+    padding:12px;
+    margin:10px 0;
+    border:none;
+    border-radius:8px;
+}
+button{
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:8px;
+    background:#00c6ff;
+    color:white;
+    font-weight:bold;
+    cursor:pointer;
+    transition:0.3s;
+}
+button:hover{
+    background:#0072ff;
+}
+a{
+    color:#00c6ff;
+    text-decoration:none;
+}
 </style>
 </head>
 
 <body>
+
 <div class="card">
-<h2>🔐 Admin Registration</h2>
+<h2>Admin Signup</h2>
+
 <form id="signupForm">
 <input type="text" id="name" placeholder="Full Name" required>
 <input type="email" id="email" placeholder="Email" required>
 <input type="password" id="password" placeholder="Password" required>
-<button>Create Account</button>
+<button type="submit">Create Account</button>
 </form>
-<div class="link">
-<p>Already have account? <a href="admin-login.html">Login</a></p>
-</div>
+
+<p>Already have account? 
+<a href="admin-login.html">Login</a>
+</p>
 </div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+import { adminSignup } from "../js/auth.js";
 
-const firebaseConfig={ apiKey:"AIzaSyA-z1Zx-0qAj6_FGiclcXFdIjiKSjXlUKw",
-authDomain:"sevasphere-6dce7.firebaseapp.com",
-projectId:"sevasphere-6dce7",
-storageBucket:"sevasphere-6dce7.appspot.com",
-messagingSenderId:"930986469572",
-appId:"1:930986469572:web:7c62c3e6ff7c3f90d98191" };
+const base = "/SevaSphere_Final";  // your repo name
 
-const app=initializeApp(firebaseConfig);
-const auth=getAuth(app);
-const db=getFirestore(app);
+document.getElementById("signupForm").addEventListener("submit", async (e)=>{
+    e.preventDefault();
 
-document.getElementById("signupForm").addEventListener("submit",async(e)=>{
-e.preventDefault();
-const user=await createUserWithEmailAndPassword(auth,email.value,password.value);
+    const name = document.getElementById("name").value;
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
 
-await setDoc(doc(db,"users",user.user.uid),{
-name:name.value,
-email:email.value,
-role:"admin",
-createdAt:serverTimestamp()
-});
+    const result = await adminSignup(name, email, password);
 
-window.location.href="admin-dashboard.html";
+    if(result.success){
+        window.location.href = base + "/admin/admin-dashboard.html";
+    }else{
+        alert(result.error);
+    }
 });
 </script>
 </body>
