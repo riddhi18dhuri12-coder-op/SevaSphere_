@@ -69,25 +69,54 @@ a{
 </div>
 
 <script type="module">
-import { adminSignup } from "../js/auth.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
-const base = "/SevaSphere_Final";  // your repo name
+const firebaseConfig = {
+  apiKey: "AIzaSyA-z1Zx-0qAj6_FGiclcXFdIjiKSjXlUKw",
+  authDomain: "sevasphere-6dce7.firebaseapp.com",
+  projectId: "sevasphere-6dce7",
+  storageBucket: "sevasphere-6dce7.appspot.com",
+  messagingSenderId: "930986469572",
+  appId: "1:930986469572:web:7c62c3e6ff7c3f90d98191"
+};
 
-document.getElementById("signupForm").addEventListener("submit", async (e)=>{
-    e.preventDefault();
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-    const name = document.getElementById("name").value;
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
+const signupForm = document.getElementById("signupForm");
 
-    const result = await adminSignup(name, email, password);
+signupForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
 
-    if(result.success){
-        window.location.href = base + "/admin/admin-dashboard.html";
-    }else{
-        alert(result.error);
-    }
+  const name = document.getElementById("name").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+
+  try {
+    // Create user in Firebase Auth
+    const userCred = await createUserWithEmailAndPassword(auth, email, password);
+
+    // Store user data in Firestore
+    await setDoc(doc(db, "users", userCred.user.uid), {
+      name: name,
+      email: email,
+      role: "admin",
+      createdAt: new Date()
+    });
+
+    alert("Signup successful! Redirecting...");
+    setTimeout(() => {
+      window.location.href = "admin-dashboard.html";
+    }, 700);
+
+  } catch (error) {
+    alert(error.message);
+  }
 });
 </script>
+
 </body>
 </html>
