@@ -82,20 +82,19 @@
   </div>
 
 
- <script type="module">
+<script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
 import { getDatabase, ref, push, set } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
 
-// 🔥 Your Firebase Config
 const firebaseConfig = {
-  apiKey: "AIzaSyA-z1Zx-0qAj6_FGiclcXFdIjiKSjXlUKw", 
-  authDomain: "sevasphere-6dce7.firebaseapp.com",
-  projectId: "sevasphere-6dce7",
+ apiKey: "AIzaSyA-z1Zx-0qAj6_FGiclcXFdIjiKSjXlUKw",
+  authDomain: "sevasphere-6dce7.firebaseapp.com",,
+  databaseURL: "https://sevasphere-6dce7-default-rtdb.asia-southeast1.firebasedatabase.app/",
+ projectId: "sevasphere-6dce7", 
   storageBucket: "sevasphere-6dce7.appspot.com",
-  messagingSenderId: "930986469572", appId: "1:930986469572:web:7c62c3e6ff7c3f90d98191"
+  messagingSenderId: "930986469572",
+  appId: "1:930986469572:web:7c62c3e6ff7c3f90d98191"
 };
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
