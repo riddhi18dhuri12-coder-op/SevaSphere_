@@ -48,31 +48,96 @@
 
   <script src="../assets/js/data.js"></script>
 
-  <script>
-    const container = document.getElementById("volunteersContainer");
+<script>
+const container = document.getElementById("volunteersContainer");
 
-    function loadVolunteers() {
-      let events = JSON.parse(localStorage.getItem("events")) || [];
-      let applications = JSON.parse(localStorage.getItem("applications")) || [];
+function loadVolunteers() {
+  let events = JSON.parse(localStorage.getItem("events")) || [];
+  let applications = JSON.parse(localStorage.getItem("applications")) || [];
 
-      container.innerHTML = "";
+  container.innerHTML = "";
 
-      events.forEach(event => {
-        let eventApps = applications.filter(app => app.eventId === event.id);
+  events.forEach(event => {
+    let eventApps = applications.filter(app => app.eventId === event.id);
 
-        let div = document.createElement("div");
+    let div = document.createElement("div");
 
-        div.innerHTML = `
-          <h3>${event.title}</h3>
-          <p><b>Total Applications:</b> ${eventApps.length}</p>
-        `;
+    div.innerHTML = `
+      <h3>${event.title}</h3>
+      <p><b>Total Applications:</b> ${eventApps.length}</p>
+      <button onclick="toggleApplications('${event.id}')" 
+        style="margin-top:10px;padding:8px 15px;border:none;border-radius:6px;background:#d9ed92;color:#184E77;font-weight:bold;cursor:pointer;">
+        View Applications
+      </button>
+      <div id="apps-${event.id}" style="margin-top:15px;display:none;"></div>
+    `;
 
-        container.appendChild(div);
-      });
+    container.appendChild(div);
+  });
+}
+
+function toggleApplications(eventId) {
+  let applications = JSON.parse(localStorage.getItem("applications")) || [];
+  let eventApps = applications.filter(app => app.eventId === eventId);
+  let appContainer = document.getElementById(`apps-${eventId}`);
+
+  if (appContainer.style.display === "block") {
+    appContainer.style.display = "none";
+    return;
+  }
+
+  appContainer.style.display = "block";
+  appContainer.innerHTML = "";
+
+  if (eventApps.length === 0) {
+    appContainer.innerHTML = "<p>No applications yet.</p>";
+    return;
+  }
+
+  eventApps.forEach(app => {
+    let status = app.status || "Pending";
+
+    let card = document.createElement("div");
+    card.style.background = "rgba(255,255,255,0.2)";
+    card.style.padding = "10px";
+    card.style.marginBottom = "10px";
+    card.style.borderRadius = "8px";
+
+    card.innerHTML = `
+      <p><b>Name:</b> ${app.name}</p>
+      <p><b>Email:</b> ${app.email}</p>
+      <p><b>Status:</b> <span id="status-${app.id}">${status}</span></p>
+      <button onclick="updateStatus('${app.id}','Accepted')" 
+        style="margin-right:10px;padding:6px 12px;border:none;border-radius:5px;background:#38b000;color:white;cursor:pointer;">
+        Accept
+      </button>
+      <button onclick="updateStatus('${app.id}','Rejected')" 
+        style="padding:6px 12px;border:none;border-radius:5px;background:#d00000;color:white;cursor:pointer;">
+        Reject
+      </button>
+    `;
+
+    appContainer.appendChild(card);
+  });
+}
+
+function updateStatus(appId, newStatus) {
+  let applications = JSON.parse(localStorage.getItem("applications")) || [];
+
+  applications = applications.map(app => {
+    if (app.id === appId) {
+      app.status = newStatus;
     }
+    return app;
+  });
 
-    loadVolunteers();
-  </script>
+  localStorage.setItem("applications", JSON.stringify(applications));
+
+  document.getElementById(`status-${appId}`).innerText = newStatus;
+}
+
+loadVolunteers();
+</script>
 
 </body>
 </html>
