@@ -10,9 +10,7 @@
       padding: 30px;
     }
 
-    h2 {
-      color: #1e6091;
-    }
+    h2 { color: #1e6091; }
 
     .top-bar {
       display:flex;
@@ -116,7 +114,6 @@
       cursor:pointer;
     }
 
-    /* MODAL */
     .modal {
       display:none;
       position:fixed;
@@ -139,7 +136,6 @@
       cursor:pointer;
       font-weight:bold;
     }
-
   </style>
 </head>
 
@@ -152,18 +148,13 @@
 
 <div class="filters">
   <input id="searchInput" placeholder="Search event name...">
-  <select id="categoryFilter">
-    <option value="All">All Categories</option>
-  </select>
-  <select id="cityFilter">
-    <option value="All">All Cities</option>
-  </select>
+  <select id="categoryFilter"><option value="All">All Categories</option></select>
+  <select id="cityFilter"><option value="All">All Cities</option></select>
   <button class="clear-btn" id="clearBtn">Clear</button>
 </div>
 
 <div id="eventsContainer"></div>
 
-<!-- INFO MODAL -->
 <div class="modal" id="infoModal">
   <div class="modal-content">
     <span class="close-btn" onclick="closeModal()">✖</span>
@@ -172,19 +163,20 @@
 </div>
 
 <script type="module">
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-import { getDatabase, ref, onValue, set, push } 
+import { getDatabase, ref, onValue, push, set } 
 from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
 
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_DOMAIN",
-  databaseURL: "YOUR_DB_URL",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_BUCKET",
-  messagingSenderId: "YOUR_ID",
-  appId: "YOUR_APP_ID"
+   apiKey: "AIzaSyA-z1Zx-0qAj6_FGiclcXFdIjiKSjXlUKw",
+  authDomain: "sevasphere-6dce7.firebaseapp.com",
+  databaseURL: "https://sevasphere-6dce7-default-rtdb.asia-southeast1.firebasedatabase.app/",
+  projectId: "sevasphere-6dce7",
+  storageBucket: "sevasphere-6dce7.appspot.com",
+  messagingSenderId: "930986469572",
+  appId: "1:930986469572:web:7c62c3e6ff7c3f90d98191"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -200,11 +192,12 @@ const viewSavedBtn = document.getElementById("viewSavedBtn");
 
 let allEvents = {};
 let savedEvents = {};
+let applications = {};
 let currentUser = null;
 let showSavedOnly = false;
 
 
-// AUTH CHECK
+// AUTH
 onAuthStateChanged(auth, (user) => {
   if (!user) {
     alert("Login first");
@@ -216,17 +209,22 @@ onAuthStateChanged(auth, (user) => {
 });
 
 
-// FETCH EVENTS + SAVED
+// FETCH REALTIME DATA
 function loadData() {
 
-  onValue(ref(db, "events"), (snapshot) => {
-    allEvents = snapshot.val() || {};
+  onValue(ref(db, "events"), snap => {
+    allEvents = snap.val() || {};
     populateFilters();
     renderEvents();
   });
 
-  onValue(ref(db, "savedEvents/" + currentUser.uid), (snapshot) => {
-    savedEvents = snapshot.val() || {};
+  onValue(ref(db, "savedEvents/" + currentUser.uid), snap => {
+    savedEvents = snap.val() || {};
+    renderEvents();
+  });
+
+  onValue(ref(db, "applications"), snap => {
+    applications = snap.val() || {};
     renderEvents();
   });
 
@@ -254,7 +252,6 @@ function populateFilters() {
   cities.forEach(city => {
     cityFilter.innerHTML += `<option value="${city}">${city}</option>`;
   });
-
 }
 
 
@@ -279,6 +276,10 @@ function renderEvents() {
 
     const isSaved = savedEvents[eventId];
 
+    const alreadyApplied = Object.values(applications).some(app =>
+      app.eventId === eventId && app.volunteerId === currentUser.uid
+    );
+
     const card = document.createElement("div");
     card.className = "event-card";
 
@@ -292,11 +293,20 @@ function renderEvents() {
       <div><b>Date:</b> ${event.date}</div>
 
       <div class="button-row">
-        <button class="apply-btn" onclick="applyEvent('${eventId}')">Apply</button>
-        <button class="save-btn" onclick="toggleSave('${eventId}')">
+        <button class="apply-btn" ${alreadyApplied ? "disabled" : ""}
+          onclick="applyEvent('${eventId}')">
+          ${alreadyApplied ? "Applied" : "Apply"}
+        </button>
+
+        <button class="save-btn"
+          onclick="toggleSave('${eventId}')">
           ${isSaved ? "★ Saved" : "☆ Save"}
         </button>
-        <button class="info-btn" onclick="showInfo('${eventId}')">ℹ</button>
+
+        <button class="info-btn"
+          onclick="showInfo('${eventId}')">
+          ℹ
+        </button>
       </div>
     `;
 
@@ -308,31 +318,42 @@ function renderEvents() {
 
 // APPLY
 window.applyEvent = async function(eventId) {
-  const newAppRef = push(ref(db, "applications"));
-  await set(newAppRef, {
-    eventId: eventId,
+
+  const alreadyApplied = Object.values(applications).some(app =>
+    app.eventId === eventId && app.volunteerId === currentUser.uid
+  );
+
+  if (alreadyApplied) return;
+
+  const newRef = push(ref(db, "applications"));
+  await set(newRef, {
+    eventId,
     volunteerId: currentUser.uid,
     status: "Pending",
     appliedAt: Date.now()
   });
-  alert("Applied Successfully 🎉");
+
 };
 
 
-// SAVE / UNSAVE
+// SAVE
 window.toggleSave = async function(eventId) {
+
   const saveRef = ref(db, "savedEvents/" + currentUser.uid + "/" + eventId);
+
   if (savedEvents[eventId]) {
     await set(saveRef, null);
   } else {
     await set(saveRef, true);
   }
+
 };
 
 
-// INFO MODAL
+// INFO
 window.showInfo = function(eventId) {
   const event = allEvents[eventId];
+
   document.getElementById("modalContent").innerHTML = `
     <h3>${event.title}</h3>
     <p><b>Category:</b> ${event.category}</p>
@@ -342,6 +363,7 @@ window.showInfo = function(eventId) {
     <p><b>NGO:</b> ${event.ngo}</p>
     <p>${event.description}</p>
   `;
+
   document.getElementById("infoModal").style.display = "flex";
 };
 
@@ -358,7 +380,7 @@ viewSavedBtn.addEventListener("click", () => {
 });
 
 
-// FILTER EVENTS
+// FILTER LISTENERS
 searchInput.addEventListener("input", renderEvents);
 categoryFilter.addEventListener("change", renderEvents);
 cityFilter.addEventListener("change", renderEvents);
