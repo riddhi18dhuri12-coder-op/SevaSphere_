@@ -11,7 +11,7 @@
     }
 
     body{
-      background: linear-gradient(135deg,#d9ed92,#b5e48c,#76c893,#52b69a,#34a0a4); /* admin palette gradient */
+      background: linear-gradient(135deg,#d9ed92,#b5e48c,#76c893,#52b69a,#34a0a4);
       min-height:100vh;
       padding:25px;
       color:#1b1b1b;
@@ -24,7 +24,7 @@
       text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
     }
 
-    div{
+    .form-container{
       width:60%;
       margin:auto;
       background: rgba(255,255,255,0.15);
@@ -70,69 +70,76 @@
 
   <h2>NGO - Create Event</h2>
 
-  <div>
-    <input id="title" placeholder="Event Title"><br>
-    <input id="category" placeholder="Category (Tree Plantation, Teaching...)"><br>
-    <input id="location" placeholder="Location"><br>
-    <input id="date" type="date"><br>
-    <input id="time" placeholder="Time (08:00 AM)"><br>
-    <input id="ngo" placeholder="NGO Name"><br>
-    <textarea id="description" placeholder="Event Description"></textarea><br>
-   <button id="createBtn">Create Event</button>
-
+  <div class="form-container">
+    <input id="title" placeholder="Event Title" required>
+    <input id="category" placeholder="Category (Tree Plantation, Teaching...)" required>
+    <input id="location" placeholder="Location" required>
+    <input id="date" type="date" required>
+    <input id="time" placeholder="Time (08:00 AM)" required>
+    <input id="ngo" placeholder="NGO Name" required>
+    <textarea id="description" placeholder="Event Description" required></textarea>
+    <button id="createBtn">Create Event</button>
   </div>
-
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 import { getDatabase, ref, push, set } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
 
 const firebaseConfig = {
- apiKey: "AIzaSyA-z1Zx-0qAj6_FGiclcXFdIjiKSjXlUKw",
-  authDomain: "sevasphere-6dce7.firebaseapp.com",,
+  apiKey: "AIzaSyA-z1Zx-0qAj6_FGiclcXFdIjiKSjXlUKw",
+  authDomain: "sevasphere-6dce7.firebaseapp.com",
   databaseURL: "https://sevasphere-6dce7-default-rtdb.asia-southeast1.firebasedatabase.app/",
- projectId: "sevasphere-6dce7", 
+  projectId: "sevasphere-6dce7",
   storageBucket: "sevasphere-6dce7.appspot.com",
   messagingSenderId: "930986469572",
   appId: "1:930986469572:web:7c62c3e6ff7c3f90d98191"
 };
+
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
 const db = getDatabase(app);
 
 document.getElementById("createBtn").addEventListener("click", async () => {
 
-  const title = document.getElementById("title").value;
-  const category = document.getElementById("category").value;
-  const location = document.getElementById("location").value;
+  const title = document.getElementById("title").value.trim();
+  const category = document.getElementById("category").value.trim();
+  const location = document.getElementById("location").value.trim();
   const date = document.getElementById("date").value;
-  const time = document.getElementById("time").value;
-  const ngo = document.getElementById("ngo").value;
-  const description = document.getElementById("description").value;
+  const time = document.getElementById("time").value.trim();
+  const ngo = document.getElementById("ngo").value.trim();
+  const description = document.getElementById("description").value.trim();
 
-  const eventsRef = ref(db, "events");
-  const newEventRef = push(eventsRef);
+  if (!title || !category || !location || !date || !time || !ngo || !description) {
+    alert("Please fill all fields!");
+    return;
+  }
 
-  await set(newEventRef, {
-    title,
-    category,
-    location,
-    date,
-    time,
-    ngo,
-    description,
-    createdAt: Date.now()
-  });
+  try {
+    const eventsRef = ref(db, "events");
+    const newEventRef = push(eventsRef);
 
-  alert("Event Created Successfully 🎉");
-});
+    await set(newEventRef, {
+      title,
+      category,
+      location,
+      date,
+      time,
+      ngo,
+      description,
+      createdAt: Date.now()
+    });
 
+    alert("Event Created Successfully 🎉");
 
-  alert("Event Created Successfully 🎉");
-  window.location.href = "admin-dashboard.html";
+    // Redirect to admin dashboard
+    window.location.href = "admin-dashboard.html";
+
+  } catch (error) {
+    console.error(error);
+    alert("Error creating event!");
+  }
+
 });
 </script>
-
 
 </body>
 </html>
