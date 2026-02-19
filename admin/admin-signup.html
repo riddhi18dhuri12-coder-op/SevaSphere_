@@ -2,51 +2,62 @@
 <html>
 <head>
 <title>Admin Signup - SevaSphere</title>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 body{
     margin:0;
     font-family:Segoe UI;
-    background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+    background:linear-gradient(135deg,#667eea,#764ba2);
     display:flex;
     justify-content:center;
     align-items:center;
     height:100vh;
 }
 .card{
-    background:rgba(255,255,255,0.1);
-    backdrop-filter:blur(15px);
+    background:white;
     padding:40px;
     width:350px;
     border-radius:15px;
-    box-shadow:0 10px 30px rgba(0,0,0,0.3);
+    box-shadow:0 10px 30px rgba(0,0,0,0.2);
     text-align:center;
-    color:white;
 }
 input{
     width:100%;
     padding:12px;
     margin:10px 0;
-    border:none;
     border-radius:8px;
+    border:1px solid #ddd;
 }
 button{
     width:100%;
     padding:12px;
     border:none;
     border-radius:8px;
-    background:#00c6ff;
+    background:#667eea;
     color:white;
     font-weight:bold;
     cursor:pointer;
 }
 button:hover{
-    background:#0072ff;
+    background:#5a67d8;
 }
-.error{color:#ff4d4d;font-size:13px;}
-.success{color:#00ff99;font-size:13px;}
+a{
+    color:#667eea;
+}
+
+/* --- Messages --- */
+.error{
+    color:#e74c3c;
+    text-align:center;
+    margin-bottom:10px;
+    font-size:13px;
+}
+.success{
+    color:#27ae60;
+    text-align:center;
+    margin-bottom:10px;
+    font-size:13px;
+}
 </style>
 </head>
 
@@ -65,8 +76,8 @@ button:hover{
 <button type="submit">Create Account</button>
 </form>
 
-<p>Already have account?
-<a href="admin-login.html" style="color:#00c6ff;">Login</a>
+<p>Already registered?
+<a href="admin-login.html">Login</a>
 </p>
 </div>
 
@@ -88,38 +99,42 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-const form = document.getElementById("signupForm");
+const signupForm = document.getElementById("signupForm");
 const errorBox = document.getElementById("error");
 const successBox = document.getElementById("success");
 
-form.addEventListener("submit", async (e)=>{
-    e.preventDefault();
+signupForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
 
-    errorBox.innerText = "";
-    successBox.innerText = "";
+  errorBox.innerText = "";
+  successBox.innerText = "";
 
-    const name = document.getElementById("name").value.trim();
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value.trim();
+  const name = document.getElementById("name").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
 
-    try {
-        const userCred = await createUserWithEmailAndPassword(auth, email, password);
+  try {
+    // Create user in Firebase Auth
+    const userCred = await createUserWithEmailAndPassword(auth, email, password);
 
-        await setDoc(doc(db, "users", userCred.user.uid), {
-            name: name,
-            email: email,
-            role: "admin",
-            createdAt: new Date()
-        });
+    // Store user data in Firestore
+    await setDoc(doc(db, "users", userCred.user.uid), {
+      name: name,
+      email: email,
+      role: "admin",
+      createdAt: new Date()
+    });
 
-        successBox.innerText = "Signup successful! Redirecting...";
-        setTimeout(()=>{
-            window.location.href = "admin-dashboard.html";
-        },700);
+    successBox.innerText = "Account created successfully! Redirecting...";
+    
+    // Redirect to dashboard after 1 second
+    setTimeout(() => {
+      window.location.href = "admin-dashboard.html";
+    }, 1000);
 
-    } catch(error){
-        errorBox.innerText = error.message;
-    }
+  } catch (error) {
+    errorBox.innerText = error.message;
+  }
 });
 </script>
 
