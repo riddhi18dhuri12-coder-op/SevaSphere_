@@ -66,29 +66,35 @@ a{
 <script type="module">
 import { login } from "../js/auth.js";
 
-const basePath = window.location.pathname.split("/")[1];
-const base = window.location.origin + "/" + basePath;
+const base = window.location.origin + "/SevaSphere_Final";
 
-document.getElementById("form").addEventListener("submit", async (e)=>{
-e.preventDefault();
+document.addEventListener("DOMContentLoaded", () => {
 
-const email = document.getElementById("email").value;
-const password = document.getElementById("password").value;
+    const form = document.getElementById("loginForm");
 
-const result = await login(email,password);
+    form.addEventListener("submit", async (e)=>{
+        e.preventDefault();
 
-if(result.success){
-if(result.role === "admin"){
-window.location.href = base + "/admin/admin-dashboard.html";
-}else{
-window.location.href = base + "/volunteer/volunteer-dashboard.html";
-}
-}else{
-alert(result.error);
-}
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+
+        const result = await login(email,password);
+
+        if(result.success){
+
+            if(result.role === "admin"){
+                window.location.href = base + "/admin/admin-dashboard.html";
+            } else {
+                window.location.href = base + "/volunteer/volunteer-dashboard.html";
+            }
+
+        }else{
+            alert(result.error);
+        }
+    });
+
 });
 </script>
-
 
 </body>
 </html>
