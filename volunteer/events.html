@@ -2,9 +2,9 @@
 <html>
 <head>
   <title>Volunteer Events | SevaSphere</title>
-  <link rel="stylesheet" href="../assets/css/style.css">
 </head>
-<body style="background: linear-gradient(135deg,#52B69A,#168AAD); color:white; font-family:'Segoe UI',sans-serif;">
+
+<body style="background: linear-gradient(135deg,#52B69A,#168AAD); color:white; font-family:'Segoe UI',sans-serif; padding:20px;">
 
   <h2 style="text-align:center; color:#184E77;">Volunteer Event Feed</h2>
 
@@ -21,78 +21,150 @@
 
   <div id="eventsContainer" style="width:80%; margin:auto;"></div>
 
-  <script src="../assets/js/data.js"></script>
 
-  <script>
-    const eventsContainer = document.getElementById("eventsContainer");
-    const categoryFilter = document.getElementById("categoryFilter");
+<script type="module">
 
-    function loadEvents() {
-      let events = JSON.parse(localStorage.getItem("events")) || [];
-      let applications = JSON.parse(localStorage.getItem("applications")) || [];
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+import { getDatabase, ref, onValue, push, set } 
+from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
 
-      let selectedCategory = categoryFilter.value;
+const firebaseConfig = {
+  apiKey: "AIzaSyA-z1Zx-0qAj6_FGiclcXFdIjiKSjXlUKw",
+  authDomain: "sevasphere-6dce7.firebaseapp.com",
+  databaseURL: "https://sevasphere-6dce7-default-rtdb.asia-southeast1.firebasedatabase.app/",
+  projectId: "sevasphere-6dce7",
+  storageBucket: "sevasphere-6dce7.appspot.com",
+  messagingSenderId: "930986469572",
+  appId: "1:930986469572:web:7c62c3e6ff7c3f90d98191"
+};
 
-      let filteredEvents = events.filter(e => {
-        return selectedCategory === "All" || e.category === selectedCategory;
-      });
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
 
-      eventsContainer.innerHTML = "";
+const eventsContainer = document.getElementById("eventsContainer");
+const categoryFilter = document.getElementById("categoryFilter");
 
-      filteredEvents.forEach(event => {
-        let alreadyApplied = applications.some(app => app.eventId === event.id);
+let allEvents = {};
+let allApplications = {};
+let currentUser = null;
 
-        let card = document.createElement("div");
-        card.style.border = "1px solid #184E77"; /* palette border */
-        card.style.padding = "15px";
-        card.style.marginBottom = "15px";
-        card.style.borderRadius = "10px";
-        card.style.background = "white";
-        card.style.color = "#184E77";
 
-        card.innerHTML = `
-          <h3>${event.title}</h3>
-          <p><b>Category:</b> ${event.category}</p>
-          <p><b>Location:</b> ${event.location}</p>
-          <p><b>Date:</b> ${event.date} | <b>Time:</b> ${event.time}</p>
-          <p><b>NGO:</b> ${event.ngo}</p>
-          <p>${event.description}</p>
+// 🔐 Ensure Volunteer is Logged In
+onAuthStateChanged(auth, (user) => {
+  if (!user) {
+    alert("Please login first");
+    window.location.href = "volunteer-login.html";
+    return;
+  }
 
-          <button ${alreadyApplied ? "disabled" : ""} style="
-            padding:10px 15px;
-            border:none;
-            border-radius:8px;
-            cursor:pointer;
-            font-weight:700;
-            background:${alreadyApplied ? '#76C893' : '#52B69A'};
-            color:white;
-          " onclick="applyEvent(${event.id})">
-            ${alreadyApplied ? "Applied" : "Apply"}
-          </button>
-        `;
+  currentUser = user;
+  loadRealtimeData();
+});
 
-        eventsContainer.appendChild(card);
-      });
+
+// 🔥 Fetch Events & Applications Realtime
+function loadRealtimeData() {
+
+  onValue(ref(db, "events"), (snapshot) => {
+    allEvents = snapshot.val() || {};
+    renderEvents();
+  });
+
+  onValue(ref(db, "applications"), (snapshot) => {
+    allApplications = snapshot.val() || {};
+    renderEvents();
+  });
+
+}
+
+
+// 🎨 Render Events
+function renderEvents() {
+
+  if (!currentUser) return;
+
+  const selectedCategory = categoryFilter.value;
+  eventsContainer.innerHTML = "";
+
+  if (Object.keys(allEvents).length === 0) {
+    eventsContainer.innerHTML = "<p style='text-align:center;'>No events available.</p>";
+    return;
+  }
+
+  Object.entries(allEvents).forEach(([eventId, event]) => {
+
+    if (selectedCategory !== "All" && event.category !== selectedCategory) {
+      return;
     }
 
-    function applyEvent(eventId) {
-      let applications = JSON.parse(localStorage.getItem("applications")) || [];
+    const alreadyApplied = Object.values(allApplications).some(app =>
+      app.eventId === eventId && app.volunteerId === currentUser.uid
+    );
 
-      applications.push({
-        eventId: eventId,
-        status: "Pending",
-        appliedAt: new Date().toLocaleString()
-      });
+    const card = document.createElement("div");
+    card.style.border = "1px solid #184E77";
+    card.style.padding = "15px";
+    card.style.marginBottom = "15px";
+    card.style.borderRadius = "10px";
+    card.style.background = "white";
+    card.style.color = "#184E77";
 
-      localStorage.setItem("applications", JSON.stringify(applications));
-      alert("Applied successfully!");
-      loadEvents();
-    }
+    card.innerHTML = `
+      <h3>${event.title}</h3>
+      <p><b>Category:</b> ${event.category}</p>
+      <p><b>Location:</b> ${event.location}</p>
+      <p><b>Date:</b> ${event.date} | <b>Time:</b> ${event.time}</p>
+      <p><b>NGO:</b> ${event.ngo}</p>
+      <p>${event.description}</p>
 
-    categoryFilter.addEventListener("change", loadEvents);
+      <button ${alreadyApplied ? "disabled" : ""} 
+        style="
+          padding:10px 15px;
+          border:none;
+          border-radius:8px;
+          cursor:pointer;
+          font-weight:700;
+          background:${alreadyApplied ? '#76C893' : '#52B69A'};
+          color:white;
+        "
+        onclick="applyForEvent('${eventId}')">
+        ${alreadyApplied ? "Applied" : "Apply"}
+      </button>
+    `;
 
-    loadEvents();
-  </script>
+    eventsContainer.appendChild(card);
+  });
+
+}
+
+
+// 🚀 Apply for Event
+window.applyForEvent = async function(eventId) {
+
+  if (!currentUser) {
+    alert("Login required");
+    return;
+  }
+
+  const newAppRef = push(ref(db, "applications"));
+
+  await set(newAppRef, {
+    eventId: eventId,
+    volunteerId: currentUser.uid,
+    status: "Pending",
+    appliedAt: Date.now()
+  });
+
+  alert("Applied Successfully 🎉");
+};
+
+
+// 🎯 Filter Change
+categoryFilter.addEventListener("change", renderEvents);
+
+</script>
 
 </body>
 </html>
