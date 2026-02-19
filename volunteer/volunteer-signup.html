@@ -44,6 +44,20 @@ button:hover{
 a{
     color:#667eea;
 }
+
+/* --- Messages --- */
+.error{
+    color:#e74c3c;
+    text-align:center;
+    margin-bottom:10px;
+    font-size:13px;
+}
+.success{
+    color:#27ae60;
+    text-align:center;
+    margin-bottom:10px;
+    font-size:13px;
+}
 </style>
 </head>
 
@@ -51,6 +65,9 @@ a{
 
 <div class="card">
 <h2>Volunteer Signup</h2>
+
+<div id="error" class="error"></div>
+<div id="success" class="success"></div>
 
 <form id="signupForm">
 <input type="text" id="name" placeholder="Full Name" required>
@@ -65,22 +82,59 @@ a{
 </div>
 
 <script type="module">
-import { volunteerSignup } from "../js/auth.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
-const base = "/SevaSphere";
+const firebaseConfig = {
+  apiKey: "AIzaSyA-z1Zx-0qAj6_FGiclcXFdIjiKSjXlUKw",
+  authDomain: "sevasphere-6dce7.firebaseapp.com",
+  projectId: "sevasphere-6dce7",
+  storageBucket: "sevasphere-6dce7.appspot.com",
+  messagingSenderId: "930986469572",
+  appId: "1:930986469572:web:7c62c3e6ff7c3f90d98191"
+};
 
-document.getElementById("signupForm").addEventListener("submit", async (e)=>{
-e.preventDefault();
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-const name = document.getElementById("name").value;
-const email = document.getElementById("email").value;
-const password = document.getElementById("password").value;
+const signupForm = document.getElementById("signupForm");
+const errorBox = document.getElementById("error");
+const successBox = document.getElementById("success");
 
-if(result.success){
-window.location.href = base + "/volunteer/volunteer-dashboard.html";
-}else{
-alert(result.error);
-}
+signupForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  errorBox.innerText = "";
+  successBox.innerText = "";
+
+  const name = document.getElementById("name").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+
+  try {
+    // Create user in Firebase Auth
+    const userCred = await createUserWithEmailAndPassword(auth, email, password);
+
+    // Store user data in Firestore
+    await setDoc(doc(db, "users", userCred.user.uid), {
+      name: name,
+      email: email,
+      role: "volunteer",
+      createdAt: new Date()
+    });
+
+    successBox.innerText = "Account created successfully! Redirecting...";
+    
+    // Redirect to dashboard after 1 second
+    setTimeout(() => {
+      window.location.href = "volunteer-dashboard.html";
+    }, 1000);
+
+  } catch (error) {
+    errorBox.innerText = error.message;
+  }
 });
 </script>
 
