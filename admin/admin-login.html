@@ -4,45 +4,75 @@
 <title>Admin Login - SevaSphere</title>
 
 <style>
+/* --- Body --- */
 body{
     margin:0;
-    font-family:Segoe UI;
-    background:linear-gradient(135deg,#1f4037,#99f2c8);
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #0B132B, #1F254F); /* deep navy gradient */
     display:flex;
     justify-content:center;
     align-items:center;
     height:100vh;
+    color:white;
 }
+
+/* --- Card --- */
 .card{
-    background:white;
-    padding:40px;
-    width:350px;
+    background:#F8FAFF; /* clean white */
+    padding:40px 35px;
+    width:360px;
     border-radius:15px;
-    box-shadow:0 10px 30px rgba(0,0,0,0.2);
+    box-shadow:0 15px 35px rgba(0,0,0,0.3);
     text-align:center;
 }
+
+/* --- Headings --- */
+.card h2{
+    margin-bottom:25px;
+    color:#0B132B; /* deep navy text */
+}
+
+/* --- Inputs --- */
 input{
     width:100%;
     padding:12px;
     margin:10px 0;
     border-radius:8px;
     border:1px solid #ddd;
+    font-size:14px;
 }
+
+/* --- Button --- */
 button{
     width:100%;
     padding:12px;
     border:none;
     border-radius:8px;
-    background:#1f4037;
+    background:#00BFA6; /* teal */
     color:white;
     font-weight:bold;
+    font-size:15px;
     cursor:pointer;
+    transition:0.3s;
 }
 button:hover{
-    background:#16302a;
+    background:#009d87; /* darker teal on hover */
 }
+
+/* --- Links --- */
 a{
-    color:#1f4037;
+    color:#00BFA6; /* teal accent */
+    text-decoration:none;
+}
+a:hover{
+    text-decoration:underline;
+}
+
+/* --- Paragraph --- */
+p{
+    margin-top:15px;
+    font-size:14px;
+    color:#0B132B; /* navy text for readability */
 }
 </style>
 </head>
@@ -62,9 +92,7 @@ a{
 
 </form>
 
-<p>New here?
-<a href="admin-signup.html">Signup</a>
-</p>
+<p>New here? <a href="admin-signup.html">Signup</a></p>
 </div>
 
 <script type="module">

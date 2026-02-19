@@ -6,39 +6,89 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
+/* --- Body --- */
 body{
-margin:0;
-font-family:'Segoe UI',sans-serif;
-background:linear-gradient(135deg,#FF9800,#F57C00);
-display:flex;
-justify-content:center;
-align-items:center;
-height:100vh;
+    margin:0;
+    font-family:'Segoe UI',sans-serif;
+    background: linear-gradient(135deg, #168AAD, #52B69A); /* teal + blue gradient */
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
 }
+
+/* --- Card --- */
 .card{
-background:rgba(255,255,255,0.15);
-backdrop-filter:blur(20px);
-padding:40px;
-border-radius:16px;
-width:350px;
-color:white;
-box-shadow:0 10px 40px rgba(0,0,0,0.3);
+    background: #F8FAFF; /* clean white card */
+    padding:40px 35px;
+    border-radius:16px;
+    width:360px;
+    box-shadow:0 15px 40px rgba(0,0,0,0.25);
+    color:#168AAD; /* primary teal text */
+    text-align:center;
 }
-.card h2{text-align:center;margin-bottom:25px;}
+
+/* --- Heading --- */
+.card h2{
+    margin-bottom:25px;
+    color:#184E77; /* deep blue heading */
+}
+
+/* --- Input Fields --- */
 input{
-width:100%;padding:12px;margin-bottom:15px;
-border:none;border-radius:8px;outline:none;
+    width:100%;
+    padding:12px;
+    margin-bottom:15px;
+    border:1px solid #dbe7ef;
+    border-radius:10px;
+    outline:none;
+    font-size:14px;
 }
+
+/* --- Button --- */
 button{
-width:100%;padding:12px;background:white;
-color:#F57C00;border:none;border-radius:8px;
-font-weight:bold;cursor:pointer;
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:10px;
+    background:#168AAD; /* primary teal button */
+    color:white;
+    font-weight:bold;
+    font-size:15px;
+    cursor:pointer;
+    transition:0.3s;
 }
-button:hover{background:#f0f0f0;}
-.link{text-align:center;margin-top:15px;}
-.link a{color:white;text-decoration:none;font-weight:600;}
-.error{color:#ffe0e0;text-align:center;margin-bottom:10px;}
-.success{color:#d8ffd8;text-align:center;margin-bottom:10px;}
+button:hover{
+    background:#0f5d73; /* darker teal on hover */
+}
+
+/* --- Links --- */
+.link{
+    margin-top:15px;
+    font-size:14px;
+}
+.link a{
+    color:#168AAD;
+    font-weight:600;
+    text-decoration:none;
+}
+.link a:hover{
+    text-decoration:underline;
+}
+
+/* --- Messages --- */
+.error{
+    color:#e74c3c;
+    text-align:center;
+    margin-bottom:10px;
+    font-size:13px;
+}
+.success{
+    color:#27ae60;
+    text-align:center;
+    margin-bottom:10px;
+    font-size:13px;
+}
 </style>
 </head>
 
@@ -56,7 +106,7 @@ button:hover{background:#f0f0f0;}
 </form>
 
 <div class="link">
-  <p>Don't have account? <a href="volunteer-signup.html">Sign Up</a></p>
+  <p>Don't have an account? <a href="volunteer-signup.html">Sign Up</a></p>
 </div>
 </div>
 
@@ -93,7 +143,6 @@ loginForm.addEventListener("submit", async (e) => {
 
   try {
     const userCred = await signInWithEmailAndPassword(auth, email, password);
-
     const userDoc = await getDoc(doc(db, "users", userCred.user.uid));
 
     if (!userDoc.exists()) {
@@ -107,7 +156,6 @@ loginForm.addEventListener("submit", async (e) => {
     }
 
     successBox.innerText = "Login successful! Redirecting...";
-
     setTimeout(() => {
       window.location.href = "volunteer-dashboard.html";
     }, 700);

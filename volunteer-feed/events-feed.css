@@ -6,7 +6,7 @@
 }
 
 body{
-  background: linear-gradient(135deg,#FF9800,#F57C00);
+  background: linear-gradient(135deg,#52B69A,#168AAD); /* palette: teal → blue */
   min-height:100vh;
   padding:25px;
 }
@@ -51,6 +51,8 @@ body{
   border:none;
   border-radius:12px;
   outline:none;
+  background:white;
+  color:#184E77; /* text inside inputs */
 }
 
 .filters button{
@@ -58,6 +60,8 @@ body{
   border-radius:12px;
   font-weight:900;
   cursor:pointer;
+  background:#184E77; /* button bg from palette */
+  color:white; /* button text */
 }
 
 .row{
@@ -69,7 +73,7 @@ body{
 }
 
 #showSavedBtn{
-  background:#1b1b1b;
+  background:#168AAD; /* saved events button */
   color:white;
   padding:10px 14px;
   border:none;
@@ -86,7 +90,7 @@ body{
 
 .card{
   background:white;
-  color:#222;
+  color:#184E77; /* text color from palette */
   padding:16px;
   border-radius:16px;
   box-shadow:0 8px 25px rgba(0,0,0,0.15);
@@ -105,12 +109,13 @@ body{
 }
 
 .tag{
-  background:#fff1e3;
+  background:#D9ED92; /* soft green from palette */
   padding:6px 10px;
   border-radius:999px;
   font-size:12px;
   font-weight:800;
-  border:1px solid rgba(255,152,0,0.35);
+  border:1px solid rgba(34,78,119,0.3); /* palette-based border */
+  color:#184E77; /* text */
 }
 
 .meta{
@@ -135,12 +140,12 @@ body{
 }
 
 .apply{
-  background:#FF9800;
+  background:#52B69A; /* teal button */
   color:white;
 }
 
 .save{
-  background:#1b1b1b;
+  background:#1A759F; /* blue button */
   color:white;
 }
 
@@ -149,6 +154,7 @@ body{
   text-align:center;
   display:none;
   font-weight:800;
+  color:white;
 }
 
 @media(max-width:900px){

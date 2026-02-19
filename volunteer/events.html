@@ -4,13 +4,13 @@
   <title>Volunteer Events | SevaSphere</title>
   <link rel="stylesheet" href="../assets/css/style.css">
 </head>
-<body>
+<body style="background: linear-gradient(135deg,#52B69A,#168AAD); color:white; font-family:'Segoe UI',sans-serif;">
 
-  <h2 style="text-align:center;">Volunteer Event Feed</h2>
+  <h2 style="text-align:center; color:#184E77;">Volunteer Event Feed</h2>
 
   <div style="text-align:center; margin: 20px;">
-    <label>Filter by Category: </label>
-    <select id="categoryFilter">
+    <label style="color:white; font-weight:600;">Filter by Category: </label>
+    <select id="categoryFilter" style="padding:10px 12px; border-radius:8px; border:none; outline:none; background:white; color:#184E77;">
       <option value="All">All</option>
       <option value="Tree Plantation">Tree Plantation</option>
       <option value="Cleanliness">Cleanliness</option>
@@ -43,10 +43,12 @@
         let alreadyApplied = applications.some(app => app.eventId === event.id);
 
         let card = document.createElement("div");
-        card.style.border = "1px solid #ccc";
+        card.style.border = "1px solid #184E77"; /* palette border */
         card.style.padding = "15px";
         card.style.marginBottom = "15px";
         card.style.borderRadius = "10px";
+        card.style.background = "white";
+        card.style.color = "#184E77";
 
         card.innerHTML = `
           <h3>${event.title}</h3>
@@ -56,7 +58,15 @@
           <p><b>NGO:</b> ${event.ngo}</p>
           <p>${event.description}</p>
 
-          <button ${alreadyApplied ? "disabled" : ""} onclick="applyEvent(${event.id})">
+          <button ${alreadyApplied ? "disabled" : ""} style="
+            padding:10px 15px;
+            border:none;
+            border-radius:8px;
+            cursor:pointer;
+            font-weight:700;
+            background:${alreadyApplied ? '#76C893' : '#52B69A'};
+            color:white;
+          " onclick="applyEvent(${event.id})">
             ${alreadyApplied ? "Applied" : "Apply"}
           </button>
         `;

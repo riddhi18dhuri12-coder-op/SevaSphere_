@@ -2,17 +2,80 @@
 <html>
 <head>
   <title>Attendance | SevaSphere</title>
-  <link rel="stylesheet" href="../assets/css/style.css">
+  <style>
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      font-family:"Segoe UI", sans-serif;
+    }
+
+    body{
+      background: linear-gradient(135deg,#d9ed92,#b5e48c,#52b69a,#168aad); /* layered admin gradient */
+      min-height:100vh;
+      padding:25px;
+      color:#1b1b1b;
+    }
+
+    h2{
+      text-align:center;
+      color:#1e6091; /* vibrant heading */
+      margin-bottom:6px;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+    }
+
+    p{
+      text-align:center;
+      color:#184e77;
+      margin-bottom:20px;
+      opacity:0.95;
+      font-weight:600;
+    }
+
+    #attendanceBox{
+      width:80%;
+      margin:auto;
+      display:flex;
+      flex-direction:column;
+      gap:20px;
+    }
+
+    .attendanceCard{
+      background: linear-gradient(135deg, #b5e48c, #76c893); /* card gradient */
+      padding:20px;
+      border-radius:16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      border-left: 6px solid #168aad; /* accent stripe */
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .attendanceCard:hover{
+      transform: translateY(-3px);
+      box-shadow: 0 15px 35px rgba(0,0,0,0.25);
+    }
+
+    .attendanceCard h3{
+      margin-bottom:10px;
+      color:#1a759f;
+      font-size:20px;
+    }
+
+    .attendanceCard p{
+      margin:4px 0;
+      color:#184e77;
+      font-weight:600;
+    }
+  </style>
 </head>
 <body>
 
-  <h2 style="text-align:center;">NGO - Attendance Prototype</h2>
+  <h2>NGO - Attendance Prototype</h2>
 
-  <p style="text-align:center;">
+  <p>
     (Prototype) Attendance can be marked here after event day.
   </p>
 
-  <div style="width:80%; margin:auto;" id="attendanceBox"></div>
+  <div id="attendanceBox"></div>
 
   <script src="../assets/js/data.js"></script>
 
@@ -29,10 +92,7 @@
         let eventApps = applications.filter(app => app.eventId === event.id);
 
         let div = document.createElement("div");
-        div.style.border = "1px solid #ccc";
-        div.style.padding = "15px";
-        div.style.marginBottom = "15px";
-        div.style.borderRadius = "10px";
+        div.className = "attendanceCard";
 
         div.innerHTML = `
           <h3>${event.title}</h3>

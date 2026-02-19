@@ -6,7 +6,7 @@
 }
 
 body{
-  background: linear-gradient(135deg,#FF9800,#F57C00);
+  background: linear-gradient(135deg,#52B69A,#168AAD);
   min-height:100vh;
   padding:25px;
 }
@@ -31,6 +31,7 @@ body{
 .left h1{
   font-size:28px;
   margin-bottom:10px;
+  color:#D9ED92;
 }
 
 .sub{
@@ -53,6 +54,9 @@ body{
   border-radius:10px;
   outline:none;
   font-size:14px;
+  background:#FFFFFF;
+  border:1px solid #34A0A4;
+  color:#184E77;
 }
 
 .btnRow{
@@ -77,17 +81,17 @@ button:hover{
 
 #generateBtn{
   background:white;
-  color:#F57C00;
+  color:#184E77;
 }
 
 .secondary{
-  background: rgba(255,255,255,0.25);
+  background:#52B69A;
   color:white;
 }
 
 .download{
   margin-top:12px;
-  background:#1b1b1b;
+  background:#1A759F;
   color:white;
 }
 
@@ -132,7 +136,7 @@ button:hover{
   padding: 26px;
   position: relative;
   overflow:hidden;
-  border: 8px solid #FF9800;
+  border: 8px solid #168AAD;
 }
 
 .certificate::before{
@@ -142,7 +146,7 @@ button:hover{
   left:-80px;
   width:220px;
   height:220px;
-  background: rgba(255,152,0,0.15);
+  background: rgba(82,182,154,0.15);
   border-radius:50%;
 }
 
@@ -153,7 +157,7 @@ button:hover{
   right:-80px;
   width:220px;
   height:220px;
-  background: rgba(245,124,0,0.15);
+  background: rgba(22,138,173,0.15);
   border-radius:50%;
 }
 
@@ -169,11 +173,11 @@ button:hover{
 .logo{
   font-weight:900;
   font-size:20px;
-  color:#F57C00;
+  color:#168AAD;
 }
 
 .badge{
-  background:#1b1b1b;
+  background:#1A759F;
   color:white;
   padding:8px 14px;
   border-radius:999px;
@@ -186,7 +190,7 @@ button:hover{
   text-align:center;
   font-size:28px;
   font-weight:900;
-  color:#1b1b1b;
+  color:#184E77;
   position:relative;
   z-index:2;
 }
@@ -194,7 +198,7 @@ button:hover{
 .line{
   width:160px;
   height:5px;
-  background:#FF9800;
+  background:#52B69A;
   margin:12px auto 18px;
   border-radius:10px;
   position:relative;
@@ -214,7 +218,7 @@ button:hover{
   text-align:center;
   font-size:34px;
   font-weight:900;
-  color:#F57C00;
+  color:#34A0A4;
   margin-top:8px;
   position:relative;
   z-index:2;
@@ -224,7 +228,7 @@ button:hover{
   text-align:center;
   font-size:20px;
   font-weight:800;
-  color:#1b1b1b;
+  color:#1E6091;
   margin-top:10px;
   position:relative;
   z-index:2;
@@ -236,8 +240,8 @@ button:hover{
   margin-top:25px;
   padding:18px;
   border-radius:14px;
-  background: #fff6ee;
-  border: 1px solid rgba(255,152,0,0.3);
+  background: #D9ED92;
+  border: 1px solid rgba(52,160,164,0.3);
   position:relative;
   z-index:2;
 }
@@ -248,12 +252,14 @@ button:hover{
   margin-bottom:4px;
   font-weight:700;
   text-align:center;
+  color:#1E6091;
 }
 
 .value{
   font-size:15px;
   font-weight:900;
   text-align:center;
+  color:#1E6091;
 }
 
 .footer{
@@ -272,7 +278,7 @@ button:hover{
 
 .sigLine{
   height:2px;
-  background:#1b1b1b;
+  background:#184E77;
   margin-bottom:6px;
 }
 
@@ -284,7 +290,7 @@ button:hover{
 .idBox{
   font-size:12px;
   font-weight:800;
-  background:#1b1b1b;
+  background:#184E77;
   color:white;
   padding:10px 12px;
   border-radius:12px;

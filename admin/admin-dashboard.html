@@ -6,46 +6,56 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
+/* --- Global Styles --- */
 body{
     margin:0;
     font-family: 'Segoe UI', sans-serif;
-    background: linear-gradient(135deg,#1B5E20,#2E7D32);
-    color:#333;
+    background: #0B132B; /* deep navy */
+    color:#fff;
 }
+
 .dashboard{
     display:flex;
     min-height:100vh;
 }
+
+/* --- Sidebar --- */
 .sidebar{
     width:260px;
-    background:rgba(255,255,255,0.12);
-    backdrop-filter:blur(15px);
+    background:#1F254F; /* darker navy */
     padding:25px;
     color:white;
+    box-shadow:2px 0 15px rgba(0,0,0,0.3);
 }
 .sidebar h2{
-    margin-bottom:30px;
-    font-size:22px;
+    margin-bottom:40px;
+    font-size:24px;
+    color:#00BFA6; /* teal accent */
 }
 .sidebar a{
     display:block;
     color:white;
     text-decoration:none;
-    padding:10px 0;
+    padding:12px 0;
     transition:0.3s;
     font-size:16px;
-    opacity:0.95;
+    opacity:0.9;
 }
 .sidebar a:hover{
     transform:translateX(5px);
     opacity:1;
-    text-decoration:underline;
+    color:#00BFA6;
 }
+
+/* --- Main Content --- */
 .main{
     flex:1;
     padding:40px;
-    background:#f5f5f5;
+    background:#F8FAFF; /* clean white background */
+    color:#0B132B;
+    overflow-y:auto;
 }
+
 .topbar{
     display:flex;
     justify-content:space-between;
@@ -53,32 +63,36 @@ body{
     margin-bottom:25px;
     gap:20px;
 }
+
 .profileBox{
-    background:white;
-    padding:18px 22px;
+    background:#00BFA6; /* teal box */
+    color:#fff;
+    padding:20px 25px;
     border-radius:12px;
-    box-shadow:0 5px 20px rgba(0,0,0,0.08);
-    margin-bottom:20px;
+    box-shadow:0 8px 25px rgba(0,0,0,0.15);
+    margin-bottom:25px;
 }
 .profileBox h2{
     margin:0;
-    font-size:20px;
+    font-size:22px;
 }
 .profileBox p{
     margin:6px 0 0;
-    color:#444;
+    font-size:15px;
 }
+
+/* --- Cards --- */
 .cards{
     display:grid;
     grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
     gap:18px;
-    margin-top:20px;
 }
 .card{
     background:white;
     padding:20px;
     border-radius:12px;
     box-shadow:0 5px 20px rgba(0,0,0,0.1);
+    color:#0B132B;
 }
 .card h3{
     margin:0;
@@ -88,8 +102,10 @@ body{
 .card h2{
     margin:12px 0 0;
     font-size:34px;
-    color:#2E7D32;
+    color:#1F254F; /* darker navy for numbers */
 }
+
+/* --- Buttons --- */
 .actionButtons{
     margin-top:25px;
     display:flex;
@@ -103,18 +119,31 @@ body{
     cursor:pointer;
     font-weight:600;
     font-size:15px;
+    transition:0.3s;
 }
 .btnPrimary{
-    background:#2E7D32;
+    background:#1F254F;
     color:white;
 }
 .btnSecondary{
     background:#fff;
-    color:#2E7D32;
-    border:2px solid #2E7D32;
+    color:#1F254F;
+    border:2px solid #1F254F;
 }
 .btn:hover{
-    opacity:0.9;
+    opacity:0.85;
+}
+
+/* Scrollbar Styling */
+.main::-webkit-scrollbar{
+    width:8px;
+}
+.main::-webkit-scrollbar-thumb{
+    background:#00BFA6;
+    border-radius:8px;
+}
+.main::-webkit-scrollbar-track{
+    background:#F8FAFF;
 }
 </style>
 </head>
@@ -186,13 +215,10 @@ body{
 
 </div>
 
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-import { 
-    getFirestore, collection, getDocs, doc, getDoc 
-} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA-z1Zx-0qAj6_FGiclcXFdIjiKSjXlUKw",
@@ -207,60 +233,42 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Helper: check upcoming
 function isUpcoming(dateStr){
     if(!dateStr) return false;
-
     const today = new Date();
     today.setHours(0,0,0,0);
-
     const eventDate = new Date(dateStr);
     eventDate.setHours(0,0,0,0);
-
     return eventDate >= today;
 }
 
 onAuthStateChanged(auth, async (user)=>{
+    if(!user){ window.location.href="admin-login.html"; return; }
 
-    if(!user){
-        window.location.href="admin-login.html";
-        return;
-    }
-
-    // Check admin role
     const userDoc = await getDoc(doc(db,"users",user.uid));
-
     if(!userDoc.exists() || userDoc.data().role !== "admin"){
         window.location.href="../index.html";
         return;
     }
 
-    // Show admin name
     document.getElementById("adminName").innerText = "Welcome, " + userDoc.data().name + " 👋";
 
-    // Total Events + Upcoming Events
     const eventsSnap = await getDocs(collection(db,"events"));
     document.getElementById("totalEvents").innerText = eventsSnap.size;
 
     let upcomingCount = 0;
     eventsSnap.forEach((docItem)=>{
-        const ev = docItem.data();
-        if(isUpcoming(ev.date)) upcomingCount++;
+        if(isUpcoming(docItem.data().date)) upcomingCount++;
     });
     document.getElementById("upcomingEvents").innerText = upcomingCount;
 
-    // Total Volunteers
     const usersSnap = await getDocs(collection(db,"users"));
     let volunteerCount = 0;
-
     usersSnap.forEach((u)=>{
         if(u.data().role === "volunteer") volunteerCount++;
     });
-
     document.getElementById("totalVolunteers").innerText = volunteerCount;
 
-    // Total Applications (optional)
-    // If you haven't created applications collection yet, it will show 0
     try{
         const appsSnap = await getDocs(collection(db, "applications"));
         document.getElementById("totalApplications").innerText = appsSnap.size;

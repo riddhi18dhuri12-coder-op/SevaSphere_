@@ -3,10 +3,46 @@
 <head>
   <title>View Volunteers | SevaSphere</title>
   <link rel="stylesheet" href="../assets/css/style.css">
+  <style>
+    body {
+      background: linear-gradient(135deg, #52b69a, #168aad); /* Admin palette gradient */
+      min-height: 100vh;
+      font-family: "Segoe UI", sans-serif;
+      padding: 25px;
+      color: white;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    #volunteersContainer > div {
+      background: rgba(255, 255, 255, 0.15); /* translucent cards */
+      backdrop-filter: blur(20px);
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 12px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: white; /* ensures text visibility */
+    }
+
+    #volunteersContainer h3 {
+      margin: 0 0 8px 0;
+      font-size: 18px;
+      color: #e0f7fa; /* light accent for heading */
+    }
+
+    #volunteersContainer p {
+      margin: 4px 0;
+      opacity: 0.9;
+    }
+  </style>
 </head>
 <body>
 
-  <h2 style="text-align:center;">NGO - Volunteer Applications</h2>
+  <h2>NGO - Volunteer Applications</h2>
 
   <div id="volunteersContainer" style="width:80%; margin:auto;"></div>
 
@@ -25,10 +61,6 @@
         let eventApps = applications.filter(app => app.eventId === event.id);
 
         let div = document.createElement("div");
-        div.style.border = "1px solid #ccc";
-        div.style.padding = "15px";
-        div.style.marginBottom = "15px";
-        div.style.borderRadius = "10px";
 
         div.innerHTML = `
           <h3>${event.title}</h3>

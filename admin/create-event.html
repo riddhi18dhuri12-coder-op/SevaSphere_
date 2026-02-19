@@ -2,21 +2,82 @@
 <html>
 <head>
   <title>Create Event | SevaSphere</title>
-  <link rel="stylesheet" href="../assets/css/style.css">
+  <style>
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      font-family:"Segoe UI", sans-serif;
+    }
+
+    body{
+      background: linear-gradient(135deg,#d9ed92,#b5e48c,#76c893,#52b69a,#34a0a4); /* admin palette gradient */
+      min-height:100vh;
+      padding:25px;
+      color:#1b1b1b;
+    }
+
+    h2{
+      text-align:center;
+      color:#1e6091;
+      margin-bottom:20px;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+    }
+
+    div{
+      width:60%;
+      margin:auto;
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(18px);
+      border-radius:16px;
+      padding:25px;
+      box-shadow: 0 10px 35px rgba(0,0,0,0.25);
+    }
+
+    input, textarea{
+      width:100%;
+      padding:12px;
+      margin-bottom:12px;
+      border:none;
+      border-radius:10px;
+      outline:none;
+      font-size:14px;
+    }
+
+    button{
+      width:100%;
+      padding:12px;
+      border:none;
+      border-radius:10px;
+      font-weight:700;
+      background:#168aad;
+      color:white;
+      cursor:pointer;
+      transition:0.2s;
+    }
+
+    button:hover{
+      background:#1a759f;
+    }
+
+    textarea{
+      resize: vertical;
+      min-height:80px;
+    }
+  </style>
 </head>
 <body>
 
-  <h2 style="text-align:center;">NGO - Create Event</h2>
+  <h2>NGO - Create Event</h2>
 
-  <div style="width:60%; margin:auto;">
-    <input id="title" placeholder="Event Title"><br><br>
-    <input id="category" placeholder="Category (Tree Plantation, Teaching...)"><br><br>
-    <input id="location" placeholder="Location"><br><br>
-    <input id="date" type="date"><br><br>
-    <input id="time" placeholder="Time (08:00 AM)"><br><br>
-    <input id="ngo" placeholder="NGO Name"><br><br>
-    <textarea id="description" placeholder="Event Description"></textarea><br><br>
-
+  <div>
+    <input id="title" placeholder="Event Title"><br>
+    <input id="category" placeholder="Category (Tree Plantation, Teaching...)"><br>
+    <input id="location" placeholder="Location"><br>
+    <input id="date" type="date"><br>
+    <input id="time" placeholder="Time (08:00 AM)"><br>
+    <input id="ngo" placeholder="NGO Name"><br>
+    <textarea id="description" placeholder="Event Description"></textarea><br>
     <button onclick="createEvent()">Create Event</button>
   </div>
 
