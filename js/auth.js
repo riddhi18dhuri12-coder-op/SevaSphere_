@@ -144,9 +144,14 @@ export function protectPage(requiredRole) {
    REDIRECT BY ROLE
 =========================== */
 export function redirectByRole(role) {
+
     if (role === "admin") {
-        window.location.href = "admin-dashboard.html";
-    } else if (role === "volunteer") {
-        window.location.href = "volunteer-dashboard.html";
+        window.location.href = "/admin/admin-dashboard.html";
+    } 
+    else if (role === "volunteer") {
+        window.location.href = "/volunteer/volunteer-dashboard.html";
+    } 
+    else {
+        window.location.href = "/index.html";
     }
 }
