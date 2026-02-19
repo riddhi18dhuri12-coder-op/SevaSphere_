@@ -114,156 +114,6 @@ body{
 .btn:hover{
     opacity:0.92;
 }
-
-/* ========================= */
-/* ✅ NEW EVENT FEED SECTION */
-/* ========================= */
-
-.feedSection{
-    margin-top:35px;
-}
-
-.feedHeader{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    flex-wrap:wrap;
-    gap:12px;
-    margin-bottom:12px;
-}
-
-.feedHeader h2{
-    margin:0;
-    font-size:22px;
-    color:#184E77;
-}
-
-.savedBtn{
-    background:#184E77;
-    color:white;
-    border:none;
-    padding:10px 14px;
-    border-radius:10px;
-    cursor:pointer;
-    font-weight:700;
-}
-
-.filters{
-    display:grid;
-    grid-template-columns: 1.4fr 1fr 1fr 0.5fr;
-    gap:10px;
-    margin-bottom:18px;
-}
-
-.filters input, .filters select{
-    padding:12px;
-    border:1px solid #dbe7ef;
-    border-radius:10px;
-    outline:none;
-    font-size:14px;
-    background:white;
-}
-
-.filters button{
-    border:none;
-    border-radius:10px;
-    font-weight:800;
-    cursor:pointer;
-    background:#184E77;
-    color:white;
-}
-
-.grid{
-    display:grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap:14px;
-}
-
-.eventCard{
-    background:white;
-    padding:16px;
-    border-radius:16px;
-    box-shadow:0 8px 25px rgba(0,0,0,0.10);
-    border:1px solid #e6eef2;
-}
-
-.eventCard h3{
-    margin-bottom:8px;
-    font-size:17px;
-    color:#0b1320;
-}
-
-.tags{
-    display:flex;
-    gap:8px;
-    flex-wrap:wrap;
-    margin-bottom:10px;
-}
-
-.tag{
-    background:#ecf8f5;
-    padding:6px 10px;
-    border-radius:999px;
-    font-size:12px;
-    font-weight:800;
-    border:1px solid rgba(82,182,154,0.35);
-    color:#184E77;
-}
-
-.meta{
-    font-size:13px;
-    margin-top:6px;
-    opacity:0.92;
-    color:#1f2937;
-}
-
-.actions{
-    display:flex;
-    gap:10px;
-    margin-top:14px;
-}
-
-.actions button{
-    width:100%;
-    padding:10px;
-    border:none;
-    border-radius:12px;
-    cursor:pointer;
-    font-weight:900;
-}
-
-.apply{
-    background:#52B69A;
-    color:white;
-}
-
-.save{
-    background:#184E77;
-    color:white;
-}
-
-.empty{
-    margin-top:20px;
-    text-align:center;
-    display:none;
-    font-weight:800;
-    color:#184E77;
-}
-
-@media(max-width:900px){
-    .grid{
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media(max-width:600px){
-    .filters{
-        grid-template-columns:1fr;
-    }
-    .grid{
-        grid-template-columns: 1fr;
-    }
-}
 </style>
 </head>
 
@@ -278,7 +128,6 @@ body{
         <a href="events.html">Browse Events</a>
         <a href="my-applications.html">My Applications</a>
 
-        <!-- Keep Certificate Generator -->
         <a href="certificates/certificate.html">🎓 Certificate Generator</a>
 
         <br>
@@ -323,42 +172,6 @@ body{
             </button>
         </div>
 
-        <!-- ✅ NEW EVENT FEED SECTION INSIDE DASHBOARD -->
-        <div class="feedSection">
-
-            <div class="feedHeader">
-                <h2>🗂 Smart Events Feed</h2>
-                <button class="savedBtn" id="showSavedBtn">⭐ View Saved Events</button>
-            </div>
-
-            <div class="filters">
-                <input id="searchInput" type="text" placeholder="Search event name..." />
-
-                <select id="categoryFilter">
-                    <option value="all">All Categories</option>
-                    <option value="Tree Plantation">Tree Plantation</option>
-                    <option value="Beach Cleanup">Beach Cleanup</option>
-                    <option value="Blood Donation">Blood Donation</option>
-                    <option value="Teaching">Teaching</option>
-                    <option value="Food Distribution">Food Distribution</option>
-                </select>
-
-                <select id="cityFilter">
-                    <option value="all">All Cities</option>
-                    <option value="Goa">Goa</option>
-                    <option value="Mumbai">Mumbai</option>
-                    <option value="Pune">Pune</option>
-                    <option value="Bangalore">Bangalore</option>
-                </select>
-
-                <button id="clearBtn">Clear</button>
-            </div>
-
-            <div id="eventsList" class="grid"></div>
-            <div id="emptyMsg" class="empty">No events found.</div>
-
-        </div>
-
     </div>
 
 </div>
@@ -384,7 +197,6 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Helper: count upcoming events
 function isUpcoming(dateStr){
     if(!dateStr) return false;
     const today = new Date();
@@ -403,7 +215,6 @@ onAuthStateChanged(auth, async (user)=>{
         return;
     }
 
-    // Check user role
     const userDoc = await getDoc(doc(db,"users",user.uid));
 
     if(!userDoc.exists() || userDoc.data().role !== "volunteer"){
@@ -411,14 +222,11 @@ onAuthStateChanged(auth, async (user)=>{
         return;
     }
 
-    // Show volunteer name
     document.getElementById("volunteerName").innerText = "Hi, " + userDoc.data().name + " 👋";
 
-    // Fetch events from Firestore (for counts)
     const eventsSnapshot = await getDocs(collection(db,"events"));
     document.getElementById("totalEvents").innerText = eventsSnapshot.size;
 
-    // Count upcoming events
     let upcomingCount = 0;
     eventsSnapshot.forEach((docItem)=>{
         const ev = docItem.data();
@@ -426,7 +234,6 @@ onAuthStateChanged(auth, async (user)=>{
     });
     document.getElementById("upcomingEvents").innerText = upcomingCount;
 
-    // Fetch volunteer applications
     try{
         const appsQuery = query(
             collection(db, "applications"),
@@ -446,152 +253,6 @@ document.getElementById("logoutBtn").addEventListener("click", async (e)=>{
     await signOut(auth);
     window.location.href="../index.html";
 });
-
-
-/* ================================================= */
-/* ✅ NEW EVENT FEED LOGIC (FRONTEND INSIDE DASHBOARD) */
-/* ================================================= */
-
-// Dummy events (frontend feed)
-const demoEvents = [
-  { id: 1, name: "Tree Plantation Drive - Panaji", category: "Tree Plantation", city: "Goa", date: "2026-03-01", ngo: "Green Earth Foundation" },
-  { id: 2, name: "Beach Cleanup - Baga", category: "Beach Cleanup", city: "Goa", date: "2026-03-05", ngo: "Ocean Care NGO" },
-  { id: 3, name: "Blood Donation Camp", category: "Blood Donation", city: "Mumbai", date: "2026-03-10", ngo: "Life Saver Trust" },
-  { id: 4, name: "Teaching Kids - Weekend", category: "Teaching", city: "Pune", date: "2026-03-12", ngo: "Bright Future NGO" },
-  { id: 5, name: "Food Distribution Drive", category: "Food Distribution", city: "Bangalore", date: "2026-03-15", ngo: "Helping Hands" },
-  { id: 6, name: "Tree Plantation - City Park", category: "Tree Plantation", city: "Mumbai", date: "2026-03-20", ngo: "Green Earth Foundation" },
-];
-
-const eventsList = document.getElementById("eventsList");
-const emptyMsg = document.getElementById("emptyMsg");
-
-const searchInput = document.getElementById("searchInput");
-const categoryFilter = document.getElementById("categoryFilter");
-const cityFilter = document.getElementById("cityFilter");
-const clearBtn = document.getElementById("clearBtn");
-const showSavedBtn = document.getElementById("showSavedBtn");
-
-function getSavedEvents(){
-  return JSON.parse(localStorage.getItem("sevasphere_saved_events")) || [];
-}
-
-function saveEvent(eventObj){
-  const saved = getSavedEvents();
-  if(!saved.find(e => e.id === eventObj.id)){
-    saved.push(eventObj);
-    localStorage.setItem("sevasphere_saved_events", JSON.stringify(saved));
-  }
-}
-
-function removeSavedEvent(eventId){
-  let saved = getSavedEvents();
-  saved = saved.filter(e => e.id !== eventId);
-  localStorage.setItem("sevasphere_saved_events", JSON.stringify(saved));
-}
-
-function isSaved(eventId){
-  return getSavedEvents().some(e => e.id === eventId);
-}
-
-function renderEvents(list){
-  eventsList.innerHTML = "";
-
-  if(list.length === 0){
-    emptyMsg.style.display = "block";
-    return;
-  }else{
-    emptyMsg.style.display = "none";
-  }
-
-  list.forEach(ev => {
-    const card = document.createElement("div");
-    card.className = "eventCard";
-
-    card.innerHTML = `
-      <h3>${ev.name}</h3>
-
-      <div class="tags">
-        <span class="tag">${ev.category}</span>
-        <span class="tag">${ev.city}</span>
-      </div>
-
-      <div class="meta"><b>NGO:</b> ${ev.ngo}</div>
-      <div class="meta"><b>Date:</b> ${ev.date}</div>
-
-      <div class="actions">
-        <button class="apply">Apply</button>
-        <button class="save">${isSaved(ev.id) ? "★ Saved" : "☆ Save"}</button>
-      </div>
-    `;
-
-    // Apply demo
-    card.querySelector(".apply").addEventListener("click", () => {
-      alert(`✅ Applied for: ${ev.name}\n(Frontend demo only)`);
-    });
-
-    // Save toggle
-    const saveBtn = card.querySelector(".save");
-    saveBtn.addEventListener("click", () => {
-      if(isSaved(ev.id)){
-        removeSavedEvent(ev.id);
-        saveBtn.innerText = "☆ Save";
-      }else{
-        saveEvent(ev);
-        saveBtn.innerText = "★ Saved";
-      }
-    });
-
-    eventsList.appendChild(card);
-  });
-}
-
-function applyFilters(){
-  const searchText = searchInput.value.toLowerCase().trim();
-  const category = categoryFilter.value;
-  const city = cityFilter.value;
-
-  let filtered = [...demoEvents];
-
-  if(searchText){
-    filtered = filtered.filter(e => e.name.toLowerCase().includes(searchText));
-  }
-
-  if(category !== "all"){
-    filtered = filtered.filter(e => e.category === category);
-  }
-
-  if(city !== "all"){
-    filtered = filtered.filter(e => e.city === city);
-  }
-
-  renderEvents(filtered);
-}
-
-searchInput.addEventListener("input", applyFilters);
-categoryFilter.addEventListener("change", applyFilters);
-cityFilter.addEventListener("change", applyFilters);
-
-clearBtn.addEventListener("click", () => {
-  searchInput.value = "";
-  categoryFilter.value = "all";
-  cityFilter.value = "all";
-  renderEvents(demoEvents);
-});
-
-showSavedBtn.addEventListener("click", () => {
-  const saved = getSavedEvents();
-  renderEvents(saved);
-
-  if(saved.length > 0){
-    alert("⭐ Showing Saved Events (Wishlist)");
-  }else{
-    alert("No saved events yet.");
-  }
-});
-
-// Initial render
-renderEvents(demoEvents);
-
 </script>
 
 </body>
