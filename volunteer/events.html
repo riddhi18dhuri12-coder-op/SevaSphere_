@@ -1,29 +1,51 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Volunteer Events | SevaSphere</title>
+  <title>Smart Events Feed | SevaSphere</title>
 </head>
 
-<body style="background: linear-gradient(135deg,#52B69A,#168AAD); color:white; font-family:'Segoe UI',sans-serif; padding:20px;">
+<body style="background:#f4f7fb; font-family:'Segoe UI',sans-serif; padding:30px;">
 
-  <h2 style="text-align:center; color:#184E77;">Volunteer Event Feed</h2>
+<!-- HEADER -->
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
+  <h2 style="color:#1e6091;">📂 Smart Events Feed</h2>
+  <button style="background:#1e6091; color:white; padding:10px 18px; border:none; border-radius:8px; cursor:pointer;">
+    ⭐ View Saved Events
+  </button>
+</div>
 
-  <div style="text-align:center; margin: 20px;">
-    <label style="color:white; font-weight:600;">Filter by Category: </label>
-    <select id="categoryFilter" style="padding:10px 12px; border-radius:8px; border:none; outline:none; background:white; color:#184E77;">
-      <option value="All">All</option>
-      <option value="Tree Plantation">Tree Plantation</option>
-      <option value="Cleanliness">Cleanliness</option>
-      <option value="Teaching">Teaching</option>
-      <option value="Donation Drive">Donation Drive</option>
-    </select>
-  </div>
+<!-- FILTER SECTION -->
+<div style="display:flex; gap:15px; margin-bottom:30px; flex-wrap:wrap;">
 
-  <div id="eventsContainer" style="width:80%; margin:auto;"></div>
+  <input id="searchInput" placeholder="Search event name..."
+    style="flex:2; padding:12px; border-radius:10px; border:1px solid #ccc;">
+
+  <select id="categoryFilter"
+    style="flex:1; padding:12px; border-radius:10px; border:1px solid #ccc;">
+    <option value="All">All Categories</option>
+    <option value="Tree Plantation">Tree Plantation</option>
+    <option value="Cleanliness">Cleanliness</option>
+    <option value="Teaching">Teaching</option>
+    <option value="Donation Drive">Donation Drive</option>
+  </select>
+
+  <select id="cityFilter"
+    style="flex:1; padding:12px; border-radius:10px; border:1px solid #ccc;">
+    <option value="All">All Cities</option>
+  </select>
+
+  <button id="clearBtn"
+    style="background:#1e6091; color:white; padding:12px 18px; border:none; border-radius:10px; cursor:pointer;">
+    Clear
+  </button>
+
+</div>
+
+<!-- EVENTS CONTAINER -->
+<div id="eventsContainer"></div>
 
 
 <script type="module">
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
 import { getDatabase, ref, onValue, push, set } 
@@ -44,14 +66,17 @@ const auth = getAuth(app);
 const db = getDatabase(app);
 
 const eventsContainer = document.getElementById("eventsContainer");
+const searchInput = document.getElementById("searchInput");
 const categoryFilter = document.getElementById("categoryFilter");
+const cityFilter = document.getElementById("cityFilter");
+const clearBtn = document.getElementById("clearBtn");
 
 let allEvents = {};
 let allApplications = {};
 let currentUser = null;
 
 
-// 🔐 Ensure Volunteer is Logged In
+// AUTH CHECK
 onAuthStateChanged(auth, (user) => {
   if (!user) {
     alert("Please login first");
@@ -64,11 +89,12 @@ onAuthStateChanged(auth, (user) => {
 });
 
 
-// 🔥 Fetch Events & Applications Realtime
+// FETCH DATA
 function loadRealtimeData() {
 
   onValue(ref(db, "events"), (snapshot) => {
     allEvents = snapshot.val() || {};
+    populateCities();
     renderEvents();
   });
 
@@ -76,26 +102,41 @@ function loadRealtimeData() {
     allApplications = snapshot.val() || {};
     renderEvents();
   });
-
 }
 
 
-// 🎨 Render Events
+// POPULATE CITY FILTER
+function populateCities() {
+  const cities = new Set();
+
+  Object.values(allEvents).forEach(event => {
+    if (event.location) cities.add(event.location);
+  });
+
+  cityFilter.innerHTML = '<option value="All">All Cities</option>';
+
+  cities.forEach(city => {
+    cityFilter.innerHTML += `<option value="${city}">${city}</option>`;
+  });
+}
+
+
+// RENDER EVENTS
 function renderEvents() {
 
-  if (!currentUser) return;
-
+  const searchText = searchInput.value.toLowerCase();
   const selectedCategory = categoryFilter.value;
-  eventsContainer.innerHTML = "";
+  const selectedCity = cityFilter.value;
 
-  if (Object.keys(allEvents).length === 0) {
-    eventsContainer.innerHTML = "<p style='text-align:center;'>No events available.</p>";
-    return;
-  }
+  eventsContainer.innerHTML = "";
 
   Object.entries(allEvents).forEach(([eventId, event]) => {
 
-    if (selectedCategory !== "All" && event.category !== selectedCategory) {
+    if (
+      (selectedCategory !== "All" && event.category !== selectedCategory) ||
+      (selectedCity !== "All" && event.location !== selectedCity) ||
+      (!event.title.toLowerCase().includes(searchText))
+    ) {
       return;
     }
 
@@ -104,33 +145,32 @@ function renderEvents() {
     );
 
     const card = document.createElement("div");
-    card.style.border = "1px solid #184E77";
-    card.style.padding = "15px";
-    card.style.marginBottom = "15px";
-    card.style.borderRadius = "10px";
     card.style.background = "white";
-    card.style.color = "#184E77";
+    card.style.padding = "20px";
+    card.style.marginBottom = "20px";
+    card.style.borderRadius = "12px";
+    card.style.boxShadow = "0 4px 15px rgba(0,0,0,0.1)";
 
     card.innerHTML = `
-      <h3>${event.title}</h3>
+      <h3 style="color:#1e6091;">${event.title}</h3>
       <p><b>Category:</b> ${event.category}</p>
-      <p><b>Location:</b> ${event.location}</p>
+      <p><b>City:</b> ${event.location}</p>
       <p><b>Date:</b> ${event.date} | <b>Time:</b> ${event.time}</p>
       <p><b>NGO:</b> ${event.ngo}</p>
       <p>${event.description}</p>
 
-      <button ${alreadyApplied ? "disabled" : ""} 
+      <button ${alreadyApplied ? "disabled" : ""}
         style="
-          padding:10px 15px;
+          margin-top:10px;
+          padding:10px 18px;
           border:none;
           border-radius:8px;
-          cursor:pointer;
-          font-weight:700;
-          background:${alreadyApplied ? '#76C893' : '#52B69A'};
+          background:${alreadyApplied ? '#76C893' : '#1e6091'};
           color:white;
+          cursor:pointer;
         "
         onclick="applyForEvent('${eventId}')">
-        ${alreadyApplied ? "Applied" : "Apply"}
+        ${alreadyApplied ? "Applied" : "Apply Now"}
       </button>
     `;
 
@@ -140,13 +180,8 @@ function renderEvents() {
 }
 
 
-// 🚀 Apply for Event
+// APPLY FUNCTION
 window.applyForEvent = async function(eventId) {
-
-  if (!currentUser) {
-    alert("Login required");
-    return;
-  }
 
   const newAppRef = push(ref(db, "applications"));
 
@@ -161,8 +196,17 @@ window.applyForEvent = async function(eventId) {
 };
 
 
-// 🎯 Filter Change
+// FILTER EVENTS
+searchInput.addEventListener("input", renderEvents);
 categoryFilter.addEventListener("change", renderEvents);
+cityFilter.addEventListener("change", renderEvents);
+
+clearBtn.addEventListener("click", () => {
+  searchInput.value = "";
+  categoryFilter.value = "All";
+  cityFilter.value = "All";
+  renderEvents();
+});
 
 </script>
 
