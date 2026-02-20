@@ -2,53 +2,150 @@
 <html>
 <head>
   <title>My Applications | SevaSphere</title>
-  <link rel="stylesheet" href="../assets/css/style.css">
-</head>
-<body>
 
-  <h2 style="text-align:center;">My Applications</h2>
-
-  <div id="applicationsContainer" style="width:80%; margin:auto;"></div>
-
-  <script src="../assets/js/data.js"></script>
-
-  <script>
-    const container = document.getElementById("applicationsContainer");
-
-    function loadApplications() {
-      let events = JSON.parse(localStorage.getItem("events")) || [];
-      let applications = JSON.parse(localStorage.getItem("applications")) || [];
-
-      container.innerHTML = "";
-
-      if (applications.length === 0) {
-        container.innerHTML = "<p style='text-align:center;'>No applications yet.</p>";
-        return;
-      }
-
-      applications.forEach(app => {
-        let event = events.find(e => e.id === app.eventId);
-
-        let div = document.createElement("div");
-        div.style.border = "1px solid #ccc";
-        div.style.padding = "15px";
-        div.style.marginBottom = "15px";
-        div.style.borderRadius = "10px";
-
-        div.innerHTML = `
-          <h3>${event.title}</h3>
-          <p><b>Category:</b> ${event.category}</p>
-          <p><b>Date:</b> ${event.date}</p>
-          <p><b>Status:</b> ${app.status}</p>
-          <p><b>Applied At:</b> ${app.appliedAt}</p>
-        `;
-
-        container.appendChild(div);
-      });
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f7fb;
+      padding: 30px;
     }
 
-    loadApplications();
-  </script>
+    h2 {
+      text-align: center;
+      color: #1e6091;
+    }
+
+    .app-card {
+      background: white;
+      padding: 20px;
+      border-radius: 15px;
+      margin-bottom: 20px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    }
+
+    .status {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-weight: 600;
+      display: inline-block;
+    }
+
+    .pending { background: #fde68a; color: #92400e; }
+    .accepted { background: #bbf7d0; color: #065f46; }
+    .rejected { background: #fecaca; color: #7f1d1d; }
+
+  </style>
+</head>
+
+<body>
+
+<h2>📂 My Applications</h2>
+<div id="applicationsContainer"></div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+import { getDatabase, ref, onValue } 
+from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_DOMAIN",
+  databaseURL: "YOUR_DATABASE_URL",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_BUCKET",
+  messagingSenderId: "YOUR_ID",
+  appId: "YOUR_APP_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
+
+const container = document.getElementById("applicationsContainer");
+
+let allEvents = {};
+let allApplications = {};
+let currentUser = null;
+
+
+// AUTH CHECK
+onAuthStateChanged(auth, (user) => {
+  if (!user) {
+    alert("Please login first");
+    window.location.href = "volunteer-login.html";
+    return;
+  }
+
+  currentUser = user;
+  loadData();
+});
+
+
+// FETCH EVENTS + APPLICATIONS REALTIME
+function loadData() {
+
+  onValue(ref(db, "events"), snap => {
+    allEvents = snap.val() || {};
+    renderApplications();
+  });
+
+  onValue(ref(db, "applications"), snap => {
+    allApplications = snap.val() || {};
+    renderApplications();
+  });
+
+}
+
+
+// RENDER APPLICATIONS
+function renderApplications() {
+
+  if (!currentUser) return;
+
+  container.innerHTML = "";
+
+  const myApplications = Object.entries(allApplications)
+    .filter(([appId, app]) => app.volunteerId === currentUser.uid);
+
+  if (myApplications.length === 0) {
+    container.innerHTML = "<p style='text-align:center;'>No applications yet.</p>";
+    return;
+  }
+
+  myApplications.forEach(([appId, app]) => {
+
+    const event = allEvents[app.eventId];
+    if (!event) return;
+
+    let statusClass = "";
+    if (app.status === "Accepted") statusClass = "accepted";
+    else if (app.status === "Rejected") statusClass = "rejected";
+    else statusClass = "pending";
+
+    const div = document.createElement("div");
+    div.className = "app-card";
+
+    div.innerHTML = `
+      <h3>${event.title}</h3>
+      <p><b>Category:</b> ${event.category}</p>
+      <p><b>Date:</b> ${event.date}</p>
+      <p>
+        <b>Status:</b> 
+        <span class="status ${statusClass}">
+          ${app.status || "Pending"}
+        </span>
+      </p>
+      <p><b>Applied At:</b> ${new Date(app.appliedAt).toLocaleString()}</p>
+    `;
+
+    container.appendChild(div);
+  });
+
+}
+
+</script>
 
 </body>
 </html>
