@@ -1,8 +1,165 @@
-<script type="module">
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>View Applications | SevaSphere</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<style>
+body{
+  font-family:'Segoe UI',sans-serif;
+  background:linear-gradient(135deg,#f0f4f8,#e6eef5);
+  padding:30px;
+  margin:0;
+}
+
+/* Header */
+.page-header{
+  background:linear-gradient(90deg,#168AAD,#52B69A);
+  color:white;
+  padding:20px 30px;
+  border-radius:15px;
+  margin-bottom:25px;
+  box-shadow:0 8px 25px rgba(0,0,0,0.1);
+}
+
+.page-header h2{
+  margin:0;
+}
+
+/* Sort Box */
+.sort-box{
+  background:white;
+  padding:15px 20px;
+  border-radius:12px;
+  box-shadow:0 5px 15px rgba(0,0,0,0.05);
+  margin-bottom:25px;
+  display:flex;
+  align-items:center;
+  gap:15px;
+}
+
+.sort-box select{
+  padding:8px 12px;
+  border-radius:8px;
+  border:1px solid #ccc;
+}
+
+/* Event Card */
+.event-block{
+  background:white;
+  padding:22px;
+  border-radius:16px;
+  margin-bottom:25px;
+  box-shadow:0 8px 25px rgba(0,0,0,0.08);
+  border-left:6px solid #168AAD;
+}
+
+.event-block h3{
+  margin:0 0 15px 0;
+  color:#184E77;
+}
+
+/* Application Card */
+.app-card{
+  background:#f4f9fc;
+  padding:15px 18px;
+  border-radius:12px;
+  margin-top:12px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  border:1px solid #e1ecf3;
+}
+
+/* Name */
+.name-link{
+  font-weight:600;
+  color:#168AAD;
+  cursor:pointer;
+}
+
+.name-link:hover{
+  text-decoration:underline;
+}
+
+/* Status Badge */
+.status-badge{
+  padding:4px 10px;
+  border-radius:20px;
+  font-size:12px;
+  font-weight:600;
+  margin-top:5px;
+  display:inline-block;
+}
+
+.status-pending{
+  background:#fff3cd;
+  color:#856404;
+}
+
+.status-accepted{
+  background:#d4edda;
+  color:#155724;
+}
+
+.status-rejected{
+  background:#f8d7da;
+  color:#721c24;
+}
+
+/* Buttons */
+.btn{
+  padding:7px 14px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:600;
+  margin-left:8px;
+}
+
+.accept{
+  background:#52b69a;
+  color:white;
+}
+
+.accept:hover{
+  background:#40916c;
+}
+
+.reject{
+  background:#ef4444;
+  color:white;
+}
+
+.reject:hover{
+  background:#dc2626;
+}
+</style>
+</head>
+
+<body>
+
+<div class="page-header">
+  <h2>📂 Event Applications Management</h2>
+</div>
+
+<div class="sort-box">
+  <label><b>Sort Applications:</b></label>
+  <select id="sortSelect">
+    <option value="date-desc">Newest First</option>
+    <option value="date-asc">Oldest First</option>
+    <option value="az">Alphabetical (Event)</option>
+    <option value="status">By Status</option>
+  </select>
+</div>
+
+<div id="applicationsContainer"></div>
+
+<script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-import { getDatabase, ref, onValue, update, get } 
+import { getDatabase, ref, onValue, update } 
 from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
 
 const firebaseConfig = {
@@ -20,126 +177,117 @@ const auth = getAuth(app);
 const db = getDatabase(app);
 
 const container = document.getElementById("applicationsContainer");
+const sortSelect = document.getElementById("sortSelect");
 
 let allEvents = {};
 let allApplications = {};
 let allUsers = {};
 let currentUser = null;
-let currentSort = "date-desc";
 
-
-// 🔐 AUTH CHECK
-onAuthStateChanged(auth, (user) => {
-  if (!user) {
-    window.location.href = "admin-login.html";
+onAuthStateChanged(auth, (user)=>{
+  if(!user){
+    window.location.href="admin-login.html";
     return;
   }
   currentUser = user;
   loadData();
 });
 
-
-// 🔄 LOAD DATA
-function loadData() {
-
-  onValue(ref(db, "events"), snap => {
+function loadData(){
+  onValue(ref(db,"events"), snap=>{
     allEvents = snap.val() || {};
     renderApplications();
   });
 
-  onValue(ref(db, "applications"), snap => {
+  onValue(ref(db,"applications"), snap=>{
     allApplications = snap.val() || {};
     renderApplications();
   });
 
-  onValue(ref(db, "users"), snap => {
+  onValue(ref(db,"users"), snap=>{
     allUsers = snap.val() || {};
     renderApplications();
   });
 }
 
-
-// 🔽 SORT FUNCTION
-function sortApplications(apps, event) {
-
-  if (currentSort === "az") {
-    apps.sort((a,b)=> event.title.localeCompare(event.title));
-  }
-
-  if (currentSort === "date-desc") {
-    apps.sort((a,b)=> b[1].appliedAt - a[1].appliedAt);
-  }
-
-  if (currentSort === "date-asc") {
-    apps.sort((a,b)=> a[1].appliedAt - b[1].appliedAt);
-  }
-
-  if (currentSort === "status") {
-    apps.sort((a,b)=> (a[1].status || "").localeCompare(b[1].status || ""));
-  }
-
-  return apps;
-}
-
-
-// 🖥️ RENDER
-function renderApplications() {
-
-  if (!currentUser) return;
+function renderApplications(){
+  if(!currentUser) return;
 
   container.innerHTML = "";
 
-  Object.entries(allEvents).forEach(([eventId, event]) => {
+  let eventsArray = Object.entries(allEvents);
 
-    // 🔥 SHOW ONLY EVENTS CREATED BY CURRENT ADMIN
-    if (!event.createdBy || event.createdBy !== currentUser.uid) {
-      return;
-    }
+  // 🔥 Only show events created by current admin
+  eventsArray = eventsArray.filter(([id,event]) => 
+    event.createdBy === currentUser.uid
+  );
+
+  // Sorting events
+  const sortValue = sortSelect.value;
+
+  if(sortValue === "az"){
+    eventsArray.sort((a,b)=>a[1].title.localeCompare(b[1].title));
+  }
+
+  eventsArray.forEach(([eventId,event])=>{
 
     const eventDiv = document.createElement("div");
-    eventDiv.className = "event-block";
-
-    eventDiv.innerHTML = `
-      <h3>${event.title}</h3>
-    `;
+    eventDiv.className="event-block";
+    eventDiv.innerHTML=`<h3>${event.title} (${event.date})</h3>`;
 
     let eventApps = Object.entries(allApplications)
-      .filter(([appId, app]) => app.eventId === eventId);
+      .filter(([appId,app])=>app.eventId===eventId);
 
-    if (eventApps.length === 0) {
+    // Sort applications
+    if(sortValue==="date-desc"){
+      eventApps.sort((a,b)=>b[1].appliedAt - a[1].appliedAt);
+    }
+    if(sortValue==="date-asc"){
+      eventApps.sort((a,b)=>a[1].appliedAt - b[1].appliedAt);
+    }
+    if(sortValue==="status"){
+      eventApps.sort((a,b)=>
+        (a[1].status||"").localeCompare(b[1].status||"")
+      );
+    }
+
+    if(eventApps.length===0){
       eventDiv.innerHTML += "<p>No applications yet.</p>";
     }
 
-    // 🔽 SORT
-    eventApps = sortApplications(eventApps, event);
-
-    eventApps.forEach(([appId, app]) => {
+    eventApps.forEach(([appId,app])=>{
 
       const volunteer = allUsers[app.volunteerId];
 
       const appCard = document.createElement("div");
-      appCard.className = "app-card";
+      appCard.className="app-card";
 
-      appCard.innerHTML = `
-        <div>
-          <span class="name-link"
-            onclick="viewProfile('${app.volunteerId}')">
-            ${volunteer ? volunteer.name : app.volunteerId}
-          </span>
-          <div>Status: <b>${app.status || "Pending"}</b></div>
+      appCard.innerHTML=`
+      <div>
+        <span class="name-link"
+          onclick="viewProfile('${app.volunteerId}')">
+          ${volunteer?volunteer.name:app.volunteerId}
+        </span>
+        <div class="status-badge ${
+          app.status==="Accepted"?"status-accepted":
+          app.status==="Rejected"?"status-rejected":
+          "status-pending"
+        }">
+          ${app.status||"Pending"}
         </div>
+      </div>
 
-        <div>
-          <button class="btn accept"
-            onclick="updateStatus('${appId}', 'Accepted')">
-            Accept
-          </button>
+      <div>
+        <button class="btn accept"
+          onclick="updateStatus('${appId}','Accepted')">
+          Accept
+        </button>
 
-          <button class="btn reject"
-            onclick="updateStatus('${appId}', 'Rejected')">
-            Reject
-          </button>
-        </div>
+        <button class="btn reject"
+          onclick="updateStatus('${appId}','Rejected')">
+          Reject
+        </button>
+      </div>
       `;
 
       eventDiv.appendChild(appCard);
@@ -147,55 +295,21 @@ function renderApplications() {
 
     container.appendChild(eventDiv);
   });
-
 }
 
+sortSelect.addEventListener("change",renderApplications);
 
-// 🔐 SECURE UPDATE
-window.updateStatus = async function(appId, status) {
-
-  const appSnap = await get(ref(db, "applications/" + appId));
-  const appData = appSnap.val();
-
-  const eventSnap = await get(ref(db, "events/" + appData.eventId));
-  const eventData = eventSnap.val();
-
-  if (!eventData.createdBy || eventData.createdBy !== currentUser.uid) {
-    alert("Not authorized");
-    return;
-  }
-
-  await update(ref(db, "applications/" + appId), {
-    status: status
+window.updateStatus = async function(appId,status){
+  await update(ref(db,"applications/"+appId),{
+    status:status
   });
 };
 
-
-// 👤 PROFILE
-window.viewProfile = function(uid) {
-  window.location.href = "../volunteer/profile.html?uid=" + uid;
+window.viewProfile = function(uid){
+  window.location.href="../volunteer/profile.html?uid="+uid;
 };
 
-
-// 🔽 ADD SORT DROPDOWN UI
-const sortDiv = document.createElement("div");
-sortDiv.style.marginBottom = "20px";
-
-sortDiv.innerHTML = `
-<label style="font-weight:600;">Sort By: </label>
-<select id="sortSelect">
-  <option value="date-desc">Date Applied (Newest)</option>
-  <option value="date-asc">Date Applied (Oldest)</option>
-  <option value="az">Alphabetical (Event)</option>
-  <option value="status">Status</option>
-</select>
-`;
-
-container.before(sortDiv);
-
-document.getElementById("sortSelect").addEventListener("change", (e)=>{
-  currentSort = e.target.value;
-  renderApplications();
-});
-
 </script>
+
+</body>
+</html>
