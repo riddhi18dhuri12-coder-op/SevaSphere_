@@ -91,6 +91,10 @@
       margin-top:5px;
     }
 
+    .danger-btn {
+      background:#dc2626;
+    }
+
     .modal {
       display:none;
       position:fixed;
@@ -210,8 +214,8 @@ function populateFilters(){
   const cities = new Set();
 
   Object.values(allEvents).forEach(event=>{
-    if(event.category) categories.add(event.category);
-    if(event.location) cities.add(event.location);
+    if(event?.category) categories.add(event.category);
+    if(event?.location) cities.add(event.location);
   });
 
   categoryFilter.innerHTML='<option value="All">All Categories</option>';
@@ -236,12 +240,18 @@ function renderEvents(){
 
   Object.entries(allEvents).forEach(([eventId,event])=>{
 
+    if(!event) return;
+
+    const title = event.title || "";
+    const category = event.category || "Not specified";
+    const location = event.location || "Not specified";
+
     if(showMyEventsOnly && event.createdBy !== currentUser.uid) return;
 
     if(
-      (selectedCategory!=="All" && event.category!==selectedCategory) ||
-      (selectedCity!=="All" && event.location!==selectedCity) ||
-      (!event.title.toLowerCase().includes(searchText))
+      (selectedCategory!=="All" && category!==selectedCategory) ||
+      (selectedCity!=="All" && location!==selectedCity) ||
+      (!title.toLowerCase().includes(searchText))
     ) return;
 
     filteredEvents.push({id:eventId, data:event});
@@ -256,10 +266,17 @@ function renderEvents(){
   eventsContainer.innerHTML="";
   paginationDiv.innerHTML="";
 
+  if(paginatedEvents.length === 0){
+    eventsContainer.innerHTML="<h3>No Events Found</h3>";
+  }
+
   paginatedEvents.forEach(({id,data})=>{
 
-    const card=document.createElement("div");
-    card.className="event-card";
+    const title = data.title || "Untitled Event";
+    const category = data.category || "Not specified";
+    const location = data.location || "Not specified";
+    const date = data.date || "Not specified";
+    const ngo = data.ngo || "Not specified";
 
     let editDeleteButtons = "";
 
@@ -267,16 +284,19 @@ function renderEvents(){
       editDeleteButtons = `
         <br><br>
         <button class="info-btn" onclick="editEvent('${id}')">✏ Edit</button>
-        <button class="info-btn" style="background:#dc2626" onclick="deleteEvent('${id}')">🗑 Delete</button>
+        <button class="info-btn danger-btn" onclick="deleteEvent('${id}')">🗑 Delete</button>
       `;
     }
 
+    const card=document.createElement("div");
+    card.className="event-card";
+
     card.innerHTML=`
-      <div class="event-title">${data.title}</div>
-      <span class="badge badge-category">${data.category}</span>
-      <span class="badge badge-city">${data.location}</span>
-      <div><b>Date:</b> ${data.date}</div>
-      <div><b>NGO:</b> ${data.ngo}</div>
+      <div class="event-title">${title}</div>
+      <span class="badge badge-category">${category}</span>
+      <span class="badge badge-city">${location}</span>
+      <div><b>Date:</b> ${date}</div>
+      <div><b>NGO:</b> ${ngo}</div>
       <br>
       <button class="info-btn" onclick="showInfo('${id}')">ℹ View Details</button>
       ${editDeleteButtons}
@@ -304,16 +324,18 @@ function renderEvents(){
 }
 
 window.showInfo=function(eventId){
-  const event=allEvents[eventId];
+
+  const event = allEvents[eventId];
+  if(!event) return;
 
   document.getElementById("modalContent").innerHTML=`
-    <h3>${event.title}</h3>
-    <p><b>Category:</b> ${event.category}</p>
-    <p><b>Location:</b> ${event.location}</p>
-    <p><b>Date:</b> ${event.date}</p>
-    <p><b>Time:</b> ${event.time}</p>
-    <p><b>NGO:</b> ${event.ngo}</p>
-    <p>${event.description}</p>
+    <h3>${event.title || "Untitled Event"}</h3>
+    <p><b>Category:</b> ${event.category || "Not specified"}</p>
+    <p><b>Location:</b> ${event.location || "Not specified"}</p>
+    <p><b>Date:</b> ${event.date || "Not specified"}</p>
+    <p><b>Time:</b> ${event.time || "Not specified"}</p>
+    <p><b>NGO:</b> ${event.ngo || "Not specified"}</p>
+    <p>${event.description || "No description available."}</p>
   `;
 
   document.getElementById("infoModal").style.display="flex";
@@ -331,11 +353,12 @@ window.deleteEvent=function(eventId){
 
 window.editEvent=function(eventId){
   const event = allEvents[eventId];
+  if(!event) return;
 
-  const newTitle = prompt("Edit Title:", event.title);
+  const newTitle = prompt("Edit Title:", event.title || "");
   if(newTitle===null) return;
 
-  const newDate = prompt("Edit Date:", event.date);
+  const newDate = prompt("Edit Date:", event.date || "");
   if(newDate===null) return;
 
   update(ref(db,"events/"+eventId),{
