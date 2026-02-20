@@ -83,6 +83,7 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
 import { getDatabase, ref, push, set } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
 
 const firebaseConfig = {
@@ -96,9 +97,27 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 const db = getDatabase(app);
 
+let currentUser = null;
+
+// 🔥 Ensure admin is logged in
+onAuthStateChanged(auth, (user) => {
+  if (!user) {
+    alert("Please login as admin first.");
+    window.location.href = "admin-login.html";
+    return;
+  }
+  currentUser = user;
+});
+
 document.getElementById("createBtn").addEventListener("click", async () => {
+
+  if (!currentUser) {
+    alert("User not authenticated!");
+    return;
+  }
 
   const title = document.getElementById("title").value.trim();
   const category = document.getElementById("category").value.trim();
@@ -114,6 +133,7 @@ document.getElementById("createBtn").addEventListener("click", async () => {
   }
 
   try {
+
     const eventsRef = ref(db, "events");
     const newEventRef = push(eventsRef);
 
@@ -125,12 +145,11 @@ document.getElementById("createBtn").addEventListener("click", async () => {
       time,
       ngo,
       description,
-      createdAt: Date.now()
+      createdAt: Date.now(),
+      createdBy: currentUser.uid   // 🔥 THIS FIXES EVERYTHING
     });
 
     alert("Event Created Successfully 🎉");
-
-    // Redirect to admin dashboard
     window.location.href = "admin-dashboard.html";
 
   } catch (error) {
@@ -140,6 +159,5 @@ document.getElementById("createBtn").addEventListener("click", async () => {
 
 });
 </script>
-
 </body>
 </html>
