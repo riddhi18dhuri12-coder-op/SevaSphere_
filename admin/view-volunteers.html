@@ -1,67 +1,8 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>View Applications | SevaSphere</title>
-
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background:#f4f7fb;
-      padding:30px;
-    }
-
-    h2 {
-      color:#1e6091;
-    }
-
-    .event-block {
-      background:white;
-      padding:20px;
-      border-radius:15px;
-      margin-bottom:25px;
-      box-shadow:0 5px 15px rgba(0,0,0,0.08);
-    }
-
-    .app-card {
-      background:#eef6fb;
-      padding:15px;
-      border-radius:10px;
-      margin-top:10px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-    }
-
-    .name-link {
-      font-weight:600;
-      color:#1e6091;
-      cursor:pointer;
-    }
-
-    .btn {
-      padding:6px 12px;
-      border:none;
-      border-radius:8px;
-      cursor:pointer;
-      font-weight:600;
-      margin-left:8px;
-    }
-
-    .accept { background:#52b69a; color:white; }
-    .reject { background:#ef4444; color:white; }
-  </style>
-</head>
-
-<body>
-
-<h2>📂 Event Applications</h2>
-<div id="applicationsContainer"></div>
-
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-import { getDatabase, ref, onValue, update } 
+import { getDatabase, ref, onValue, update, get } 
 from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
 
 const firebaseConfig = {
@@ -84,22 +25,21 @@ let allEvents = {};
 let allApplications = {};
 let allUsers = {};
 let currentUser = null;
+let currentSort = "date-desc";
 
 
-// AUTH CHECK
+// 🔐 AUTH CHECK
 onAuthStateChanged(auth, (user) => {
   if (!user) {
-    alert("Login required");
     window.location.href = "admin-login.html";
     return;
   }
-
   currentUser = user;
   loadData();
 });
 
 
-// LOAD REALTIME DATA
+// 🔄 LOAD DATA
 function loadData() {
 
   onValue(ref(db, "events"), snap => {
@@ -116,31 +56,62 @@ function loadData() {
     allUsers = snap.val() || {};
     renderApplications();
   });
-
 }
 
 
-// RENDER APPLICATIONS
+// 🔽 SORT FUNCTION
+function sortApplications(apps, event) {
+
+  if (currentSort === "az") {
+    apps.sort((a,b)=> event.title.localeCompare(event.title));
+  }
+
+  if (currentSort === "date-desc") {
+    apps.sort((a,b)=> b[1].appliedAt - a[1].appliedAt);
+  }
+
+  if (currentSort === "date-asc") {
+    apps.sort((a,b)=> a[1].appliedAt - b[1].appliedAt);
+  }
+
+  if (currentSort === "status") {
+    apps.sort((a,b)=> (a[1].status || "").localeCompare(b[1].status || ""));
+  }
+
+  return apps;
+}
+
+
+// 🖥️ RENDER
 function renderApplications() {
 
   if (!currentUser) return;
 
   container.innerHTML = "";
 
-  if (!allEvents || !allApplications) return;
-
   Object.entries(allEvents).forEach(([eventId, event]) => {
+
+    // 🔥 SHOW ONLY EVENTS CREATED BY CURRENT ADMIN
+    if (!event.createdBy || event.createdBy !== currentUser.uid) {
+      return;
+    }
 
     const eventDiv = document.createElement("div");
     eventDiv.className = "event-block";
-    eventDiv.innerHTML = `<h3>${event.title}</h3>`;
 
-    const eventApps = Object.entries(allApplications)
+    eventDiv.innerHTML = `
+      <h3>${event.title}</h3>
+    `;
+
+    let eventApps = Object.entries(allApplications)
       .filter(([appId, app]) => app.eventId === eventId);
 
     if (eventApps.length === 0) {
       eventDiv.innerHTML += "<p>No applications yet.</p>";
     }
+
+    // 🔽 SORT
+    eventApps = sortApplications(eventApps, event);
 
     eventApps.forEach(([appId, app]) => {
 
@@ -180,22 +151,51 @@ function renderApplications() {
 }
 
 
-// UPDATE STATUS
+// 🔐 SECURE UPDATE
 window.updateStatus = async function(appId, status) {
+
+  const appSnap = await get(ref(db, "applications/" + appId));
+  const appData = appSnap.val();
+
+  const eventSnap = await get(ref(db, "events/" + appData.eventId));
+  const eventData = eventSnap.val();
+
+  if (!eventData.createdBy || eventData.createdBy !== currentUser.uid) {
+    alert("Not authorized");
+    return;
+  }
 
   await update(ref(db, "applications/" + appId), {
     status: status
   });
-
 };
 
 
-// VIEW PROFILE
+// 👤 PROFILE
 window.viewProfile = function(uid) {
   window.location.href = "../volunteer/profile.html?uid=" + uid;
 };
 
-</script>
 
-</body>
-</html>
+// 🔽 ADD SORT DROPDOWN UI
+const sortDiv = document.createElement("div");
+sortDiv.style.marginBottom = "20px";
+
+sortDiv.innerHTML = `
+<label style="font-weight:600;">Sort By: </label>
+<select id="sortSelect">
+  <option value="date-desc">Date Applied (Newest)</option>
+  <option value="date-asc">Date Applied (Oldest)</option>
+  <option value="az">Alphabetical (Event)</option>
+  <option value="status">Status</option>
+</select>
+`;
+
+container.before(sortDiv);
+
+document.getElementById("sortSelect").addEventListener("change", (e)=>{
+  currentSort = e.target.value;
+  renderApplications();
+});
+
+</script>
