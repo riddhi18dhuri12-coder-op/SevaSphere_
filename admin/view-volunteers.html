@@ -61,7 +61,7 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-import { getDatabase, ref, onValue, update, get } 
+import { getDatabase, ref, onValue, update } 
 from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
 
 const firebaseConfig = {
@@ -86,8 +86,8 @@ let allUsers = {};
 let currentUser = null;
 
 
-// AUTH CHECK (Admin Only)
-onAuthStateChanged(auth, async (user) => {
+// AUTH CHECK
+onAuthStateChanged(auth, (user) => {
   if (!user) {
     alert("Login required");
     window.location.href = "admin-login.html";
@@ -95,12 +95,11 @@ onAuthStateChanged(auth, async (user) => {
   }
 
   currentUser = user;
-
   loadData();
 });
 
 
-// FETCH DATA REALTIME
+// LOAD REALTIME DATA
 function loadData() {
 
   onValue(ref(db, "events"), snap => {
@@ -117,22 +116,23 @@ function loadData() {
     allUsers = snap.val() || {};
     renderApplications();
   });
+
 }
 
 
 // RENDER APPLICATIONS
 function renderApplications() {
 
+  if (!currentUser) return;
+
   container.innerHTML = "";
+
+  if (!allEvents || !allApplications) return;
 
   Object.entries(allEvents).forEach(([eventId, event]) => {
 
-    // Only show events created by this admin
-    if (event.createdBy !== currentUser.uid) return;
-
     const eventDiv = document.createElement("div");
     eventDiv.className = "event-block";
-
     eventDiv.innerHTML = `<h3>${event.title}</h3>`;
 
     const eventApps = Object.entries(allApplications)
@@ -145,17 +145,17 @@ function renderApplications() {
     eventApps.forEach(([appId, app]) => {
 
       const volunteer = allUsers[app.volunteerId];
-      if (!volunteer) return;
 
       const appCard = document.createElement("div");
       appCard.className = "app-card";
 
       appCard.innerHTML = `
         <div>
-          <span class="name-link" onclick="viewProfile('${app.volunteerId}')">
-            ${volunteer.name}
+          <span class="name-link"
+            onclick="viewProfile('${app.volunteerId}')">
+            ${volunteer ? volunteer.name : app.volunteerId}
           </span>
-          <div>Status: ${app.status}</div>
+          <div>Status: <b>${app.status || "Pending"}</b></div>
         </div>
 
         <div>
@@ -180,7 +180,7 @@ function renderApplications() {
 }
 
 
-// ACCEPT / REJECT
+// UPDATE STATUS
 window.updateStatus = async function(appId, status) {
 
   await update(ref(db, "applications/" + appId), {
