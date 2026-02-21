@@ -161,7 +161,7 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-import { getDatabase, ref, onValue, update, remove } 
+import { getDatabase, ref, onValue, update, remove, get } 
 from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
 
 const firebaseConfig = {
@@ -192,18 +192,31 @@ let showMyEventsOnly = false;
 let currentPage = 1;
 const eventsPerPage = 5;
 
-onAuthStateChanged(auth, (user)=>{
+onAuthStateChanged(auth, async (user)=>{
+
   if(!user){
     window.location.href="admin-login.html";
     return;
   }
+
+  // Admin role check
+  const userSnap = await get(ref(db,"users/"+user.uid));
+  if(!userSnap.exists() || userSnap.val().role !== "admin"){
+      window.location.href="../index.html";
+      return;
+  }
+
   currentUser = user;
   loadEvents();
 });
 
 function loadEvents(){
   onValue(ref(db,"events"), snap=>{
-    allEvents = snap.val() || {};
+    if(!snap.exists()){
+      allEvents = {};
+    } else {
+      allEvents = snap.val();
+    }
     populateFilters();
     renderEvents();
   });
@@ -272,34 +285,21 @@ function renderEvents(){
 
   paginatedEvents.forEach(({id,data})=>{
 
-    const title = data.title || "Untitled Event";
-    const category = data.category || "Not specified";
-    const location = data.location || "Not specified";
-    const date = data.date || "Not specified";
-    const ngo = data.ngo || "Not specified";
-
-    let editDeleteButtons = "";
-
-    if(showMyEventsOnly){
-      editDeleteButtons = `
-        <br><br>
-        <button class="info-btn" onclick="editEvent('${id}')">✏ Edit</button>
-        <button class="info-btn danger-btn" onclick="deleteEvent('${id}')">🗑 Delete</button>
-      `;
-    }
-
     const card=document.createElement("div");
     card.className="event-card";
 
     card.innerHTML=`
-      <div class="event-title">${title}</div>
-      <span class="badge badge-category">${category}</span>
-      <span class="badge badge-city">${location}</span>
-      <div><b>Date:</b> ${date}</div>
-      <div><b>NGO:</b> ${ngo}</div>
+      <div class="event-title">${data.title || "Untitled Event"}</div>
+      <span class="badge badge-category">${data.category || "Not specified"}</span>
+      <span class="badge badge-city">${data.location || "Not specified"}</span>
+      <div><b>Date:</b> ${data.date || "Not specified"}</div>
+      <div><b>NGO:</b> ${data.ngo || "Not specified"}</div>
       <br>
       <button class="info-btn" onclick="showInfo('${id}')">ℹ View Details</button>
-      ${editDeleteButtons}
+      ${showMyEventsOnly ? `
+        <button class="info-btn" onclick="editEvent('${id}')">✏ Edit</button>
+        <button class="info-btn danger-btn" onclick="deleteEvent('${id}')">🗑 Delete</button>
+      ` : ""}
     `;
 
     eventsContainer.appendChild(card);
@@ -308,23 +308,16 @@ function renderEvents(){
   for(let i=1;i<=totalPages;i++){
     const btn=document.createElement("button");
     btn.innerText=i;
-
     if(i===currentPage){
       btn.style.background="#1e6091";
       btn.style.color="white";
     }
-
-    btn.onclick=()=>{
-      currentPage=i;
-      renderEvents();
-    };
-
+    btn.onclick=()=>{ currentPage=i; renderEvents(); };
     paginationDiv.appendChild(btn);
   }
 }
 
 window.showInfo=function(eventId){
-
   const event = allEvents[eventId];
   if(!event) return;
 
