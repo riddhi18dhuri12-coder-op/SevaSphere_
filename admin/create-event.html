@@ -21,7 +21,7 @@ body{
 
 .form-wrapper{
   width:100%;
-  max-width:600px;
+  max-width:650px;
 }
 
 h2{
@@ -36,6 +36,8 @@ h2{
   padding:30px;
   border-radius:18px;
   box-shadow:0 15px 40px rgba(0,0,0,0.2);
+  max-height:90vh;
+  overflow-y:auto;
 }
 
 input, textarea{
@@ -78,18 +80,36 @@ button:hover{
 </head>
 <body>
 
+<div class="form-wrapper">
+
   <h2>NGO - Create Event</h2>
 
   <div class="form-container">
     <input id="title" placeholder="Event Title" required>
     <input id="category" placeholder="Category (Tree Plantation, Teaching...)" required>
     <input id="location" placeholder="Location" required>
+
+    <label>Event Date</label>
     <input id="date" type="date" required>
+
+    <label>Last Date to Apply</label>
+    <input id="lastDate" type="date" required>
+
     <input id="time" placeholder="Time (08:00 AM)" required>
     <input id="ngo" placeholder="NGO Name" required>
+
+    <input id="volunteersRequired" type="number" placeholder="Number of Volunteers Required" required>
+
+    <input id="skillsRequired" placeholder="Skills Required (e.g., Teaching, First Aid)" required>
+
+    <textarea id="requirements" placeholder="Additional Requirements (Age limit, bring gloves, etc.)"></textarea>
+
     <textarea id="description" placeholder="Event Description" required></textarea>
+
     <button id="createBtn">Create Event</button>
   </div>
+
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
@@ -112,7 +132,6 @@ const db = getDatabase(app);
 
 let currentUser = null;
 
-// 🔥 Ensure admin is logged in
 onAuthStateChanged(auth, (user) => {
   if (!user) {
     alert("Please login as admin first.");
@@ -133,12 +152,21 @@ document.getElementById("createBtn").addEventListener("click", async () => {
   const category = document.getElementById("category").value.trim();
   const location = document.getElementById("location").value.trim();
   const date = document.getElementById("date").value;
+  const lastDate = document.getElementById("lastDate").value;
   const time = document.getElementById("time").value.trim();
   const ngo = document.getElementById("ngo").value.trim();
+  const volunteersRequired = document.getElementById("volunteersRequired").value;
+  const skillsRequired = document.getElementById("skillsRequired").value.trim();
+  const requirements = document.getElementById("requirements").value.trim();
   const description = document.getElementById("description").value.trim();
 
-  if (!title || !category || !location || !date || !time || !ngo || !description) {
-    alert("Please fill all fields!");
+  if (!title || !category || !location || !date || !lastDate || !time || !ngo || !volunteersRequired || !skillsRequired || !description) {
+    alert("Please fill all required fields!");
+    return;
+  }
+
+  if (new Date(lastDate) > new Date(date)) {
+    alert("Last application date cannot be after event date!");
     return;
   }
 
@@ -152,11 +180,15 @@ document.getElementById("createBtn").addEventListener("click", async () => {
       category,
       location,
       date,
+      lastDate,
       time,
       ngo,
+      volunteersRequired: Number(volunteersRequired),
+      skillsRequired,
+      requirements,
       description,
       createdAt: Date.now(),
-      createdBy: currentUser.uid   // 🔥 THIS FIXES EVERYTHING
+      createdBy: currentUser.uid
     });
 
     alert("Event Created Successfully 🎉");
@@ -169,5 +201,6 @@ document.getElementById("createBtn").addEventListener("click", async () => {
 
 });
 </script>
+
 </body>
 </html>
