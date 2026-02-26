@@ -1,33 +1,31 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>All Events | SevaSphere Admin</title>
+<title>Admin Events | SevaSphere</title>
 
 <style>
-body {
-  background: linear-gradient(135deg,#e0f7fa,#f0fdf4);
-  font-family: 'Segoe UI', sans-serif;
-  padding: 30px;
+body{
+  background:linear-gradient(135deg,#e0f7fa,#f0fdf4);
+  font-family:'Segoe UI',sans-serif;
+  padding:30px;
   margin:0;
 }
 
-/* Top Bar */
-.top-bar {
+.top-bar{
   display:flex;
   justify-content:space-between;
   align-items:center;
   margin-bottom:25px;
 }
 
-h2 {
-  color:#0f172a;
+h2{
   margin:0;
   font-size:26px;
   font-weight:700;
+  color:#0f172a;
 }
 
-/* Primary Button */
-.my-events-btn {
+.my-events-btn{
   background:linear-gradient(90deg,#06b6d4,#14b8a6);
   color:white;
   border:none;
@@ -35,121 +33,69 @@ h2 {
   border-radius:12px;
   cursor:pointer;
   font-weight:600;
-  transition:0.25s;
 }
 
-.my-events-btn:hover{
-  transform:translateY(-2px);
-  box-shadow:0 8px 20px rgba(0,0,0,0.15);
-}
-
-/* Filters */
-.filters {
-  display:flex;
-  gap:15px;
-  margin-bottom:30px;
-  flex-wrap:wrap;
+.event-card{
   background:white;
-  padding:18px;
-  border-radius:16px;
-  box-shadow:0 10px 30px rgba(0,0,0,0.05);
-}
-
-input, select {
-  padding:12px;
-  border-radius:10px;
-  border:1px solid #dbeafe;
-  flex:1;
-  transition:0.2s;
-}
-
-input:focus, select:focus{
-  outline:none;
-  border-color:#06b6d4;
-  box-shadow:0 0 0 3px rgba(6,182,212,0.2);
-}
-
-/* Clear Button */
-.clear-btn {
-  background:#0ea5e9;
-  color:white;
-  border:none;
-  border-radius:10px;
-  padding:12px 20px;
-  cursor:pointer;
-  font-weight:600;
-  transition:0.25s;
-}
-
-.clear-btn:hover{
-  background:#0284c7;
-}
-
-/* Event Card */
-.event-card {
-  background:white;
-  border-radius:22px;
-  padding:28px;
-  margin-bottom:25px;
+  border-radius:20px;
+  padding:25px;
+  margin-bottom:20px;
   box-shadow:0 15px 40px rgba(0,0,0,0.06);
-  transition:0.25s;
 }
 
-.event-card:hover{
-  transform:translateY(-4px);
-}
-
-.event-title {
+.event-title{
   font-size:22px;
   font-weight:700;
-  margin-bottom:15px;
-  color:#0f172a;
+  margin-bottom:10px;
 }
 
-/* Badges */
-.badge {
+.badge{
   display:inline-block;
-  padding:8px 16px;
-  border-radius:30px;
-  font-size:13px;
+  padding:6px 14px;
+  border-radius:20px;
+  font-size:12px;
   font-weight:600;
-  margin-right:10px;
-  margin-bottom:15px;
+  margin-right:8px;
 }
 
-.badge-category { 
-  background:#ccfbf1; 
-  color:#0f766e; 
+.count-badge{
+  background:#0ea5e9;
+  color:white;
 }
 
-.badge-city { 
-  background:#dbeafe; 
-  color:#1e3a8a; 
+.progress-bar{
+  height:8px;
+  background:#e5e7eb;
+  border-radius:10px;
+  margin:8px 0;
+  overflow:hidden;
 }
 
-/* Buttons */
-.info-btn {
-  background:linear-gradient(90deg,#64748b,#475569);
+.progress-fill{
+  height:100%;
+  background:linear-gradient(90deg,#22c55e,#16a34a);
+}
+
+.info-btn{
+  background:#475569;
   color:white;
   border:none;
-  padding:10px 18px;
-  border-radius:12px;
+  padding:8px 14px;
+  border-radius:10px;
   cursor:pointer;
   margin-right:8px;
-  margin-top:10px;
-  transition:0.2s;
 }
 
-.info-btn:hover{
-  opacity:0.9;
+.danger-btn{
+  background:#dc2626;
 }
 
-.danger-btn {
-  background:linear-gradient(90deg,#ef4444,#dc2626);
+.edit-disabled{
+  background:#9ca3af;
+  cursor:not-allowed;
 }
 
-/* Modal */
-.modal {
+.modal{
   display:none;
   position:fixed;
   inset:0;
@@ -158,41 +104,12 @@ input:focus, select:focus{
   align-items:center;
 }
 
-.modal-content {
+.modal-content{
   background:white;
-  padding:30px;
-  border-radius:22px;
-  width:420px;
+  padding:25px;
+  border-radius:20px;
+  width:450px;
   max-width:90%;
-  box-shadow:0 20px 60px rgba(0,0,0,0.2);
-}
-
-.close-btn {
-  float:right;
-  cursor:pointer;
-  font-weight:bold;
-}
-
-/* Pagination */
-#pagination {
-  margin-top:30px;
-  text-align:center;
-}
-
-#pagination button {
-  margin:6px;
-  padding:10px 16px;
-  border-radius:10px;
-  border:none;
-  cursor:pointer;
-  background:#06b6d4;
-  color:white;
-  font-weight:600;
-  transition:0.2s;
-}
-
-#pagination button:hover{
-  background:#0891b2;
 }
 </style>
 </head>
@@ -204,19 +121,11 @@ input:focus, select:focus{
   <button id="myEventsBtn" class="my-events-btn">👤 My Events</button>
 </div>
 
-<div class="filters">
-  <input id="searchInput" placeholder="Search event name...">
-  <select id="categoryFilter"><option value="All">All Categories</option></select>
-  <select id="cityFilter"><option value="All">All Cities</option></select>
-  <button class="clear-btn" id="clearBtn">Clear</button>
-</div>
-
 <div id="eventsContainer"></div>
-<div id="pagination"></div>
 
 <div class="modal" id="infoModal">
   <div class="modal-content">
-    <span class="close-btn" onclick="closeModal()">✖</span>
+    <span onclick="closeModal()" style="float:right;cursor:pointer;">✖</span>
     <div id="modalContent"></div>
   </div>
 </div>
@@ -225,7 +134,7 @@ input:focus, select:focus{
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-import { getDatabase, ref, onValue, update, remove, get } 
+import { getDatabase, ref, onValue, get, update, remove } 
 from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
 
 const firebaseConfig = {
@@ -242,159 +151,115 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 
-const eventsContainer = document.getElementById("eventsContainer");
-const searchInput = document.getElementById("searchInput");
-const categoryFilter = document.getElementById("categoryFilter");
-const cityFilter = document.getElementById("cityFilter");
-const clearBtn = document.getElementById("clearBtn");
-const myEventsBtn = document.getElementById("myEventsBtn");
-const paginationDiv = document.getElementById("pagination");
-
 let allEvents = {};
+let allApplications = {};
 let currentUser = null;
 let showMyEventsOnly = false;
-let currentPage = 1;
-const eventsPerPage = 5;
 
-onAuthStateChanged(auth, async (user)=>{
-
+onAuthStateChanged(auth, async(user)=>{
   if(!user){
     window.location.href="admin-login.html";
     return;
   }
 
-  // Admin role check
   const userSnap = await get(ref(db,"users/"+user.uid));
   if(!userSnap.exists() || userSnap.val().role !== "admin"){
-      window.location.href="../index.html";
-      return;
+    window.location.href="../index.html";
+    return;
   }
 
   currentUser = user;
-  loadEvents();
-});
 
-function loadEvents(){
   onValue(ref(db,"events"), snap=>{
-    if(!snap.exists()){
-      allEvents = {};
-    } else {
-      allEvents = snap.val();
-    }
-    populateFilters();
+    allEvents = snap.val() || {};
     renderEvents();
   });
-}
 
-function populateFilters(){
-  const categories = new Set();
-  const cities = new Set();
-
-  Object.values(allEvents).forEach(event=>{
-    if(event?.category) categories.add(event.category);
-    if(event?.location) cities.add(event.location);
+  onValue(ref(db,"applications"), snap=>{
+    allApplications = snap.val() || {};
+    renderEvents();
   });
-
-  categoryFilter.innerHTML='<option value="All">All Categories</option>';
-  cityFilter.innerHTML='<option value="All">All Cities</option>';
-
-  categories.forEach(cat=>{
-    categoryFilter.innerHTML+=`<option value="${cat}">${cat}</option>`;
-  });
-
-  cities.forEach(city=>{
-    cityFilter.innerHTML+=`<option value="${city}">${city}</option>`;
-  });
-}
+});
 
 function renderEvents(){
 
-  const searchText = searchInput.value.toLowerCase();
-  const selectedCategory = categoryFilter.value;
-  const selectedCity = cityFilter.value;
+  const container = document.getElementById("eventsContainer");
+  container.innerHTML="";
 
-  let filteredEvents = [];
-
-  Object.entries(allEvents).forEach(([eventId,event])=>{
-
-    if(!event) return;
-
-    const title = event.title || "";
-    const category = event.category || "Not specified";
-    const location = event.location || "Not specified";
+  Object.entries(allEvents).forEach(([id,event])=>{
 
     if(showMyEventsOnly && event.createdBy !== currentUser.uid) return;
 
-    if(
-      (selectedCategory!=="All" && category!==selectedCategory) ||
-      (selectedCity!=="All" && location!==selectedCity) ||
-      (!title.toLowerCase().includes(searchText))
-    ) return;
+    const acceptedApps = Object.values(allApplications).filter(
+      app => app.eventId === id && app.status === "Accepted"
+    );
 
-    filteredEvents.push({id:eventId, data:event});
-  });
+    const totalApps = Object.values(allApplications).filter(
+      app => app.eventId === id
+    );
 
-  const totalPages = Math.ceil(filteredEvents.length / eventsPerPage);
-  if(currentPage > totalPages) currentPage = 1;
+    const required = parseInt(event.volunteersRequired) || 0;
+    const filled = acceptedApps.length;
+    const percent = required ? (filled/required)*100 : 0;
 
-  const start = (currentPage - 1) * eventsPerPage;
-  const paginatedEvents = filteredEvents.slice(start, start + eventsPerPage);
+    const today = new Date();
+    const deadline = event.lastDate ? new Date(event.lastDate) : null;
 
-  eventsContainer.innerHTML="";
-  paginationDiv.innerHTML="";
+    let daysLeft = "N/A";
+    let closed = false;
 
-  if(paginatedEvents.length === 0){
-    eventsContainer.innerHTML="<h3>No Events Found</h3>";
-  }
-
-  paginatedEvents.forEach(({id,data})=>{
+    if(deadline){
+      const diff = Math.ceil((deadline - today)/(1000*60*60*24));
+      if(diff < 0){
+        daysLeft = "Closed";
+        closed = true;
+      } else {
+        daysLeft = diff + " days left";
+      }
+    }
 
     const card=document.createElement("div");
     card.className="event-card";
 
     card.innerHTML=`
-      <div class="event-title">${data.title || "Untitled Event"}</div>
-      <span class="badge badge-category">${data.category || "Not specified"}</span>
-      <span class="badge badge-city">${data.location || "Not specified"}</span>
-      <div><b>Date:</b> ${data.date || "Not specified"}</div>
-      <div><b>NGO:</b> ${data.ngo || "Not specified"}</div>
-      <br>
-      <button class="info-btn" onclick="showInfo('${id}')">ℹ View Details</button>
-      ${showMyEventsOnly ? `
-        <button class="info-btn" onclick="editEvent('${id}')">✏ Edit</button>
-        <button class="info-btn danger-btn" onclick="deleteEvent('${id}')">🗑 Delete</button>
-      ` : ""}
+      <div class="event-title">${event.title}</div>
+      <span class="badge count-badge">Applications: ${totalApps.length}</span>
+      <div><b>Date:</b> ${event.date}</div>
+      <div><b>Deadline:</b> ${event.lastDate || "N/A"} (${daysLeft})</div>
+      <div><b>Filled:</b> ${filled} / ${required}</div>
+
+      <div class="progress-bar">
+        <div class="progress-fill" style="width:${percent}%"></div>
+      </div>
+
+      <button class="info-btn" onclick="showInfo('${id}')">ℹ Details</button>
+
+      <button class="info-btn ${closed ? 'edit-disabled' : ''}"
+        ${closed ? 'disabled' : ''}
+        onclick="editEvent('${id}')">
+        ✏ Edit
+      </button>
+
+      <button class="info-btn danger-btn"
+        onclick="deleteEvent('${id}')">
+        🗑 Delete
+      </button>
     `;
 
-    eventsContainer.appendChild(card);
+    container.appendChild(card);
   });
-
-  for(let i=1;i<=totalPages;i++){
-    const btn=document.createElement("button");
-    btn.innerText=i;
-    if(i===currentPage){
-      btn.style.background="#1e6091";
-      btn.style.color="white";
-    }
-    btn.onclick=()=>{ currentPage=i; renderEvents(); };
-    paginationDiv.appendChild(btn);
-  }
 }
 
-window.showInfo=function(eventId){
-  const event = allEvents[eventId];
-  if(!event) return;
-
+window.showInfo=function(id){
+  const e = allEvents[id];
   document.getElementById("modalContent").innerHTML=`
-    <h3>${event.title || "Untitled Event"}</h3>
-    <p><b>Category:</b> ${event.category || "Not specified"}</p>
-    <p><b>Location:</b> ${event.location || "Not specified"}</p>
-    <p><b>Date:</b> ${event.date || "Not specified"}</p>
-    <p><b>Time:</b> ${event.time || "Not specified"}</p>
-    <p><b>NGO:</b> ${event.ngo || "Not specified"}</p>
-    <p>${event.description || "No description available."}</p>
+    <h3>${e.title}</h3>
+    <p><b>Category:</b> ${e.category}</p>
+    <p><b>Location:</b> ${e.location}</p>
+    <p><b>Skills Required:</b> ${e.skillsRequired || "N/A"}</p>
+    <p><b>Additional Requirements:</b> ${e.additionalRequirements || "N/A"}</p>
+    <p>${e.description}</p>
   `;
-
   document.getElementById("infoModal").style.display="flex";
 };
 
@@ -402,48 +267,25 @@ window.closeModal=function(){
   document.getElementById("infoModal").style.display="none";
 };
 
-window.deleteEvent=function(eventId){
-  if(confirm("Are you sure you want to delete this event?")){
-    remove(ref(db,"events/"+eventId));
+window.deleteEvent=function(id){
+  if(confirm("Delete this event?")){
+    remove(ref(db,"events/"+id));
   }
 };
 
-window.editEvent=function(eventId){
-  const event = allEvents[eventId];
-  if(!event) return;
-
-  const newTitle = prompt("Edit Title:", event.title || "");
-  if(newTitle===null) return;
-
-  const newDate = prompt("Edit Date:", event.date || "");
-  if(newDate===null) return;
-
-  update(ref(db,"events/"+eventId),{
-    title:newTitle,
-    date:newDate
-  });
+window.editEvent=function(id){
+  const e = allEvents[id];
+  const newTitle = prompt("Edit Title:", e.title);
+  if(newTitle){
+    update(ref(db,"events/"+id),{title:newTitle});
+  }
 };
 
-myEventsBtn.addEventListener("click",()=>{
+document.getElementById("myEventsBtn").addEventListener("click",()=>{
   showMyEventsOnly=!showMyEventsOnly;
-  myEventsBtn.innerText=showMyEventsOnly?"🔙 Show All Events":"👤 My Events";
-  currentPage=1;
-  renderEvents();
-});
-
-searchInput.addEventListener("input",()=>{ currentPage=1; renderEvents(); });
-categoryFilter.addEventListener("change",()=>{ currentPage=1; renderEvents(); });
-cityFilter.addEventListener("change",()=>{ currentPage=1; renderEvents(); });
-
-clearBtn.addEventListener("click",()=>{
-  searchInput.value="";
-  categoryFilter.value="All";
-  cityFilter.value="All";
-  currentPage=1;
   renderEvents();
 });
 
 </script>
-
 </body>
 </html>
