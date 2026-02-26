@@ -438,7 +438,7 @@ function render(){
     const diffMs = deadline - today;
     const diffDaysAfter = Math.ceil((today - deadline)/(1000*60*60*24));
 
-    if(diffDaysAfter > 2) return;
+    if(diffDaysAfter > 5) return;
 
     const isExpired = diffMs < 0;
 
@@ -553,6 +553,5 @@ sortSelect.addEventListener("change",render);
 setInterval(()=>{ render(); },60000);
 
 </script>
-
 </body>
 </html> 
