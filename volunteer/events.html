@@ -237,8 +237,12 @@ let showSavedOnly = false;
 
 const container = document.getElementById("eventsContainer");
 const viewSavedBtn = document.getElementById("viewSavedBtn");
+const searchInput = document.getElementById("searchInput");
+const categoryFilter = document.getElementById("categoryFilter");
+const cityFilter = document.getElementById("cityFilter");
+const clearBtn = document.getElementById("clearBtn");
 
-let countdownIntervals = {}; // prevent stacking
+let globalCountdownInterval = null;
 
 onAuthStateChanged(auth,(user)=>{
   if(!user){
@@ -252,6 +256,7 @@ onAuthStateChanged(auth,(user)=>{
 function loadData(){
   onValue(ref(db,"events"),snap=>{
     allEvents=snap.val()||{};
+    populateFilters();
     render();
   });
 
@@ -266,19 +271,43 @@ function loadData(){
   });
 }
 
+function populateFilters(){
+  const cats=new Set();
+  const cities=new Set();
+
+  Object.values(allEvents).forEach(e=>{
+    if(e.category) cats.add(e.category);
+    if(e.location) cities.add(e.location);
+  });
+
+  categoryFilter.innerHTML='<option value="All">All Categories</option>';
+  cityFilter.innerHTML='<option value="All">All Cities</option>';
+
+  cats.forEach(c=> categoryFilter.innerHTML+=`<option>${c}</option>`);
+  cities.forEach(c=> cityFilter.innerHTML+=`<option>${c}</option>`);
+}
+
 function render(){
 
   const today=new Date();
   container.innerHTML="";
 
-  // Clear old intervals
-  Object.values(countdownIntervals).forEach(clearInterval);
-  countdownIntervals = {};
+  if(globalCountdownInterval) clearInterval(globalCountdownInterval);
 
   Object.entries(allEvents).forEach(([id,data])=>{
 
     if(new Date(data.date)<today) return;
     if(showSavedOnly && !savedEvents[id]) return;
+
+    if(searchInput.value &&
+      !data.title.toLowerCase().includes(searchInput.value.toLowerCase()))
+      return;
+
+    if(categoryFilter.value!=="All" &&
+       data.category!==categoryFilter.value) return;
+
+    if(cityFilter.value!=="All" &&
+       data.location!==cityFilter.value) return;
 
     const deadline=new Date(data.lastDate);
     const diff=deadline-today;
@@ -313,10 +342,9 @@ function render(){
 
       <div><b>Date:</b> ${data.date}</div>
       <div><b>Last Date:</b> ${data.lastDate}</div>
-
       <div><b>Vacancy Left:</b> ${vacancy}</div>
 
-      ${!isExpired?`<div class="countdown" id="timer-${id}"></div>`:""}
+      ${!isExpired?`<div class="countdown" data-deadline="${data.lastDate}"></div>`:""}
 
       <div class="button-row">
         <button class="apply-btn"
@@ -336,35 +364,30 @@ function render(){
     `;
 
     container.appendChild(card);
-
-    if(!isExpired){
-      countdownIntervals[id]=setInterval(()=>{
-        updateCountdown(id, deadline);
-      },1000);
-      updateCountdown(id, deadline);
-    }
-
   });
+
+  startGlobalCountdown();
 }
 
-function updateCountdown(id, deadline){
-  const el=document.getElementById(`timer-${id}`);
-  if(!el) return;
+function startGlobalCountdown(){
+  globalCountdownInterval=setInterval(()=>{
+    document.querySelectorAll(".countdown").forEach(el=>{
+      const deadline=new Date(el.dataset.deadline);
+      const diff=deadline-new Date();
 
-  const now=new Date();
-  const diff=deadline-now;
+      if(diff<=0){
+        el.innerHTML="❌ Deadline Passed";
+        return;
+      }
 
-  if(diff<=0){
-    el.innerHTML="❌ Deadline Passed";
-    return;
-  }
+      const d=Math.floor(diff/(1000*60*60*24));
+      const h=Math.floor((diff/(1000*60*60))%24);
+      const m=Math.floor((diff/(1000*60))%60);
+      const s=Math.floor((diff/1000)%60);
 
-  const d=Math.floor(diff/(1000*60*60*24));
-  const h=Math.floor((diff/(1000*60*60))%24);
-  const m=Math.floor((diff/(1000*60))%60);
-  const s=Math.floor((diff/1000)%60);
-
-  el.innerHTML=`⏳ ${d}d ${h}h ${m}m ${s}s`;
+      el.innerHTML=`⏳ ${d}d ${h}h ${m}m ${s}s`;
+    });
+  },1000);
 }
 
 window.applyEvent=async function(id){
@@ -390,6 +413,17 @@ viewSavedBtn.addEventListener("click", () => {
     : "⭐ View Saved Events";
   render();
 });
+
+clearBtn.addEventListener("click",()=>{
+  searchInput.value="";
+  categoryFilter.value="All";
+  cityFilter.value="All";
+  render();
+});
+
+searchInput.addEventListener("input",render);
+categoryFilter.addEventListener("change",render);
+cityFilter.addEventListener("change",render);
 
 window.showInfo=function(id){
   const e=allEvents[id];
