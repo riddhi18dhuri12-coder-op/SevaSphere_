@@ -166,11 +166,11 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-import { getDatabase, ref, onValue, push, set } 
+import { getDatabase, ref, onValue, push, set }
 from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
 
 const firebaseConfig = {
-   apiKey: "AIzaSyA-z1Zx-0qAj6_FGiclcXFdIjiKSjXlUKw",
+  apiKey: "AIzaSyA-z1Zx-0qAj6_FGiclcXFdIjiKSjXlUKw",
   authDomain: "sevasphere-6dce7.firebaseapp.com",
   databaseURL: "https://sevasphere-6dce7-default-rtdb.asia-southeast1.firebasedatabase.app/",
   projectId: "sevasphere-6dce7",
@@ -183,214 +183,177 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 
-const eventsContainer = document.getElementById("eventsContainer");
-const searchInput = document.getElementById("searchInput");
-const categoryFilter = document.getElementById("categoryFilter");
-const cityFilter = document.getElementById("cityFilter");
-const clearBtn = document.getElementById("clearBtn");
-const viewSavedBtn = document.getElementById("viewSavedBtn");
-
+let currentUser = null;
 let allEvents = {};
 let savedEvents = {};
 let applications = {};
-let currentUser = null;
 let showSavedOnly = false;
 
+const container = document.getElementById("eventsContainer");
+const savedBtn = document.getElementById("viewSavedBtn");
 
 // AUTH
-onAuthStateChanged(auth, (user) => {
-  if (!user) {
-    alert("Login first");
-    window.location.href = "volunteer-login.html";
+onAuthStateChanged(auth, (user)=>{
+  if(!user){
+    window.location.href="volunteer-login.html";
     return;
   }
   currentUser = user;
   loadData();
 });
 
+function loadData(){
 
-// FETCH REALTIME DATA
-function loadData() {
-
-  onValue(ref(db, "events"), snap => {
+  onValue(ref(db,"events"), snap=>{
     allEvents = snap.val() || {};
-    populateFilters();
-    renderEvents();
+    render();
   });
 
-  onValue(ref(db, "savedEvents/" + currentUser.uid), snap => {
+  onValue(ref(db,"savedEvents/"+currentUser.uid), snap=>{
     savedEvents = snap.val() || {};
-    renderEvents();
+    render();
   });
 
-  onValue(ref(db, "applications"), snap => {
+  onValue(ref(db,"applications"), snap=>{
     applications = snap.val() || {};
-    renderEvents();
-  });
-
-}
-
-
-// UNIQUE FILTERS
-function populateFilters() {
-
-  const categories = new Set();
-  const cities = new Set();
-
-  Object.values(allEvents).forEach(event => {
-    if (event.category) categories.add(event.category);
-    if (event.location) cities.add(event.location);
-  });
-
-  categoryFilter.innerHTML = '<option value="All">All Categories</option>';
-  cityFilter.innerHTML = '<option value="All">All Cities</option>';
-
-  categories.forEach(cat => {
-    categoryFilter.innerHTML += `<option value="${cat}">${cat}</option>`;
-  });
-
-  cities.forEach(city => {
-    cityFilter.innerHTML += `<option value="${city}">${city}</option>`;
+    render();
   });
 }
-
 
 // RENDER EVENTS
-function renderEvents() {
+function render(){
 
-  const searchText = searchInput.value.toLowerCase();
-  const selectedCategory = categoryFilter.value;
-  const selectedCity = cityFilter.value;
+  if(!currentUser) return;
 
-  eventsContainer.innerHTML = "";
+  container.innerHTML="";
+  const today = new Date();
 
-  Object.entries(allEvents).forEach(([eventId, event]) => {
+  let events = Object.entries(allEvents).map(([id,data])=>({id,data}));
 
-    if (showSavedOnly && !savedEvents[eventId]) return;
+  if(showSavedOnly){
+    events = events.filter(e=>savedEvents[e.id]);
+  }
 
-    if (
-      (selectedCategory !== "All" && event.category !== selectedCategory) ||
-      (selectedCity !== "All" && event.location !== selectedCity) ||
-      (!event.title.toLowerCase().includes(searchText))
-    ) return;
+  events.forEach(({id,data})=>{
 
-    const isSaved = savedEvents[eventId];
+    if(!data.lastDate) return;
 
-    const alreadyApplied = Object.values(applications).some(app =>
-      app.eventId === eventId && app.volunteerId === currentUser.uid
-    );
+    const deadline = new Date(data.lastDate);
+    const diffMs = deadline - today;
+    const diffDaysAfter = Math.ceil((today - deadline)/(1000*60*60*24));
+
+    // 🔥 Hide after 5 days expired
+    if(diffDaysAfter > 5) return;
+
+    const isExpired = diffMs < 0;
+
+    const days = Math.floor(diffMs/(1000*60*60*24));
+    const hours = Math.floor((diffMs/(1000*60*60))%24);
+    const minutes = Math.floor((diffMs/(1000*60))%60);
+
+    const isSaved = savedEvents[id];
+
+    const alreadyApplied = Object.values(applications)
+      .some(a=>a.eventId===id && a.volunteerId===currentUser.uid);
+
+    // Badges
+    let badgeHTML = "";
+
+    if(isExpired){
+      badgeHTML += `
+        <span class="badge" 
+        style="background:#fee2e2;color:#b91c1c;">
+        ❌ Expired
+        </span>`;
+    }
+    else if(days<=2){
+      badgeHTML += `
+        <span class="badge" 
+        style="background:#fef9c3;color:#92400e;">
+        ⚠ Applications Closing Soon
+        </span>`;
+    }
 
     const card = document.createElement("div");
-    card.className = "event-card";
+    card.className="event-card";
 
     card.innerHTML = `
-      <div class="event-title">${event.title}</div>
+      <div class="event-title">${data.title}</div>
 
-      <span class="badge badge-category">${event.category}</span>
-      <span class="badge badge-city">${event.location}</span>
+      <span class="badge badge-category">${data.category}</span>
+      <span class="badge badge-city">${data.location}</span>
+      ${badgeHTML}
 
-      <div><b>NGO:</b> ${event.ngo}</div>
-      <div><b>Date:</b> ${event.date}</div>
+      <div><b>NGO:</b> ${data.ngo}</div>
+      <div><b>Date:</b> ${data.date}</div>
+      <div><b>Deadline:</b> ${data.lastDate}</div>
+      <div><b>Volunteers Required:</b> ${data.volunteersRequired || 0}</div>
+
+      ${
+        !isExpired
+        ? `<div style="margin-top:8px;font-size:13px;color:#555;">
+            ⏳ ${days}d ${hours}h ${minutes}m left
+           </div>`
+        : ""
+      }
 
       <div class="button-row">
-        <button class="apply-btn" ${alreadyApplied ? "disabled" : ""}
-          onclick="applyEvent('${eventId}')">
+
+        <button class="apply-btn" 
+          ${alreadyApplied || isExpired ? "disabled":""}
+          onclick="applyEvent('${id}')">
           ${alreadyApplied ? "Applied" : "Apply"}
         </button>
 
         <button class="save-btn"
-          onclick="toggleSave('${eventId}')">
+          onclick="toggleSave('${id}')">
           ${isSaved ? "★ Saved" : "☆ Save"}
         </button>
 
-        <button class="info-btn"
-          onclick="showInfo('${eventId}')">
-          ℹ
-        </button>
       </div>
     `;
 
-    eventsContainer.appendChild(card);
+    container.appendChild(card);
   });
-
 }
 
-
 // APPLY
-window.applyEvent = async function(eventId) {
+window.applyEvent = async function(eventId){
 
-  const alreadyApplied = Object.values(applications).some(app =>
-    app.eventId === eventId && app.volunteerId === currentUser.uid
-  );
-
-  if (alreadyApplied) return;
-
-  const newRef = push(ref(db, "applications"));
-  await set(newRef, {
+  const newRef = push(ref(db,"applications"));
+  await set(newRef,{
     eventId,
     volunteerId: currentUser.uid,
-    status: "Pending",
-    appliedAt: Date.now()
+    status:"Pending",
+    appliedAt:Date.now()
   });
-
-};
-
+}
 
 // SAVE
-window.toggleSave = async function(eventId) {
+window.toggleSave = async function(eventId){
 
-  const saveRef = ref(db, "savedEvents/" + currentUser.uid + "/" + eventId);
+  const saveRef = ref(db,"savedEvents/"+currentUser.uid+"/"+eventId);
 
-  if (savedEvents[eventId]) {
-    await set(saveRef, null);
-  } else {
-    await set(saveRef, true);
+  if(savedEvents[eventId]){
+    await set(saveRef,null);
+  }else{
+    await set(saveRef,true);
   }
+}
 
-};
-
-
-// INFO
-window.showInfo = function(eventId) {
-  const event = allEvents[eventId];
-
-  document.getElementById("modalContent").innerHTML = `
-    <h3>${event.title}</h3>
-    <p><b>Category:</b> ${event.category}</p>
-    <p><b>Location:</b> ${event.location}</p>
-    <p><b>Date:</b> ${event.date}</p>
-    <p><b>Time:</b> ${event.time}</p>
-    <p><b>NGO:</b> ${event.ngo}</p>
-    <p>${event.description}</p>
-  `;
-
-  document.getElementById("infoModal").style.display = "flex";
-};
-
-window.closeModal = function() {
-  document.getElementById("infoModal").style.display = "none";
-};
-
-
-// TOGGLE SAVED VIEW
-viewSavedBtn.addEventListener("click", () => {
-  showSavedOnly = !showSavedOnly;
-  viewSavedBtn.innerText = showSavedOnly ? "🔙 Back to All Events" : "⭐ View Saved Events";
-  renderEvents();
+// Toggle Saved View
+savedBtn.addEventListener("click",()=>{
+  showSavedOnly=!showSavedOnly;
+  savedBtn.innerText = showSavedOnly
+    ? "🔙 Back to All Events"
+    : "⭐ View Saved Events";
+  render();
 });
 
-
-// FILTER LISTENERS
-searchInput.addEventListener("input", renderEvents);
-categoryFilter.addEventListener("change", renderEvents);
-cityFilter.addEventListener("change", renderEvents);
-
-clearBtn.addEventListener("click", () => {
-  searchInput.value = "";
-  categoryFilter.value = "All";
-  cityFilter.value = "All";
-  renderEvents();
-});
+// 🔥 Live countdown refresh every minute
+setInterval(()=>{
+  render();
+},60000);
 
 </script>
 
