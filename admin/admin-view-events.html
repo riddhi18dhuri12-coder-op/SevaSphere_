@@ -283,9 +283,17 @@ window.editEvent = function(id){
 window.viewEvent = function(id){
   alert("Implement detailed modal if needed");
 }
+const myEventsBtn = document.getElementById("myEventsBtn");
 
-document.getElementById("myEventsBtn").addEventListener("click",()=>{
-  showMineOnly=!showMineOnly;
+myEventsBtn.addEventListener("click", () => {
+  showMineOnly = !showMineOnly;
+
+  if (showMineOnly) {
+    myEventsBtn.innerText = "🔙 Back to All Events";
+  } else {
+    myEventsBtn.innerText = "👤 My Events";
+  }
+
   render();
 });
 
