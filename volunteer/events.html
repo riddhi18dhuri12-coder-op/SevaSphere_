@@ -143,13 +143,27 @@ input, select{
   cursor:pointer;
 }
 
+/* Closing Soon Badge */
+.badge-closing{
+  background:#fef9c3;
+  color:#92400e;
+}
+
+/* Smooth Modal Animation */
 .modal{
   display:none;
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,0.5);
+  background:rgba(0,0,0,0.55);
   justify-content:center;
   align-items:center;
+  opacity:0;
+  transition:opacity 0.25s ease;
+}
+
+.modal.show{
+  display:flex;
+  opacity:1;
 }
 
 .modal-content{
@@ -160,12 +174,12 @@ input, select{
   max-width:95%;
   max-height:80vh;
   overflow-y:auto;
+  transform:scale(0.9);
+  transition:transform 0.25s ease;
 }
 
-.close-btn{
-  float:right;
-  cursor:pointer;
-  font-weight:bold;
+.modal.show .modal-content{
+  transform:scale(1);
 }
 
 </style>
@@ -215,13 +229,22 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 
-let allEvents={}, savedEvents={}, applications={};
-let currentUser=null;
+let allEvents = {};
+let savedEvents = {};
+let applications = {};
+let currentUser = null;
+let showSavedOnly = false;
 
-const container=document.getElementById("eventsContainer");
+const container = document.getElementById("eventsContainer");
+const viewSavedBtn = document.getElementById("viewSavedBtn");
+
+let countdownIntervals = {}; // prevent stacking
 
 onAuthStateChanged(auth,(user)=>{
-  if(!user){ window.location.href="volunteer-login.html"; return; }
+  if(!user){
+    window.location.href="volunteer-login.html";
+    return;
+  }
   currentUser=user;
   loadData();
 });
@@ -231,10 +254,12 @@ function loadData(){
     allEvents=snap.val()||{};
     render();
   });
+
   onValue(ref(db,"savedEvents/"+currentUser.uid),snap=>{
     savedEvents=snap.val()||{};
     render();
   });
+
   onValue(ref(db,"applications"),snap=>{
     applications=snap.val()||{};
     render();
@@ -246,18 +271,9 @@ function render(){
   const today=new Date();
   container.innerHTML="";
 
-  Object.entries(allEvents).forEach(([id,data])=>{
-
-    if(new Date(data.date)<today) return;
-
-    const deadline=new Date(data.lastDate);
-    const diff=deadline-today;
-    const isExpired=diff<0;
-
-    function render(){
-
-  const today=new Date();
-  container.innerHTML="";
+  // Clear old intervals
+  Object.values(countdownIntervals).forEach(clearInterval);
+  countdownIntervals = {};
 
   Object.entries(allEvents).forEach(([id,data])=>{
 
@@ -265,7 +281,10 @@ function render(){
     if(showSavedOnly && !savedEvents[id]) return;
 
     const deadline=new Date(data.lastDate);
-    const isExpired=deadline<today;
+    const diff=deadline-today;
+    const isExpired=diff<0;
+    const diffDays=diff/(1000*60*60*24);
+    const isClosingSoon=diffDays<=2 && diffDays>0;
 
     const eventApps=Object.values(applications)
       .filter(a=>a.eventId===id);
@@ -278,55 +297,74 @@ function render(){
       0
     );
 
-
-    const alreadyApplied=Object.values(applications)
-      .some(a=>a.eventId===id && a.volunteerId===currentUser.uid);
+    const alreadyApplied=eventApps
+      .some(a=>a.volunteerId===currentUser.uid);
 
     const card=document.createElement("div");
     card.className="event-card";
 
     card.innerHTML=`
       <div class="event-title">${data.title}</div>
+
       <span class="badge badge-category">${data.category||""}</span>
       <span class="badge badge-city">${data.location||""}</span>
       ${isExpired?'<span class="badge" style="background:#fee2e2;color:#b91c1c;">❌ Expired</span>':""}
+      ${isClosingSoon?'<span class="badge badge-closing">⚠ Closing Soon</span>':""}
+
       <div><b>Date:</b> ${data.date}</div>
       <div><b>Last Date:</b> ${data.lastDate}</div>
+
+      <div><b>Vacancy Left:</b> ${vacancy}</div>
+
       ${!isExpired?`<div class="countdown" id="timer-${id}"></div>`:""}
+
       <div class="button-row">
         <button class="apply-btn"
-          ${isExpired||alreadyApplied?"disabled":""}
+          ${isExpired||alreadyApplied||vacancy<=0?"disabled":""}
           onclick="applyEvent('${id}')">
-          ${alreadyApplied?"Applied":"Apply"}
+          ${alreadyApplied?"Applied":vacancy<=0?"Full":"Apply"}
         </button>
+
         <button class="save-btn"
           onclick="toggleSave('${id}')">
           ${savedEvents[id]?"★ Saved":"☆ Save"}
         </button>
+
         <button class="info-btn"
           onclick="showInfo('${id}')">ℹ</button>
       </div>
     `;
+
     container.appendChild(card);
 
-    if(!isExpired) startCountdown(id, deadline);
+    if(!isExpired){
+      countdownIntervals[id]=setInterval(()=>{
+        updateCountdown(id, deadline);
+      },1000);
+      updateCountdown(id, deadline);
+    }
+
   });
 }
 
-function startCountdown(id, deadline){
+function updateCountdown(id, deadline){
   const el=document.getElementById(`timer-${id}`);
-  function update(){
-    const now=new Date();
-    const diff=deadline-now;
-    if(diff<=0){ el.innerHTML="❌ Deadline Passed"; return; }
-    const d=Math.floor(diff/(1000*60*60*24));
-    const h=Math.floor((diff/(1000*60*60))%24);
-    const m=Math.floor((diff/(1000*60))%60);
-    const s=Math.floor((diff/1000)%60);
-    el.innerHTML=`⏳ ${d}d ${h}h ${m}m ${s}s`;
+  if(!el) return;
+
+  const now=new Date();
+  const diff=deadline-now;
+
+  if(diff<=0){
+    el.innerHTML="❌ Deadline Passed";
+    return;
   }
-  update();
-  setInterval(update,1000);
+
+  const d=Math.floor(diff/(1000*60*60*24));
+  const h=Math.floor((diff/(1000*60*60))%24);
+  const m=Math.floor((diff/(1000*60))%60);
+  const s=Math.floor((diff/1000)%60);
+
+  el.innerHTML=`⏳ ${d}d ${h}h ${m}m ${s}s`;
 }
 
 window.applyEvent=async function(id){
@@ -344,13 +382,14 @@ window.toggleSave=async function(id){
   if(savedEvents[id]) await set(saveRef,null);
   else await set(saveRef,true);
 };
+
 viewSavedBtn.addEventListener("click", () => {
   showSavedOnly = !showSavedOnly;
   viewSavedBtn.innerText = showSavedOnly
     ? "🔙 Back to All Events"
     : "⭐ View Saved Events";
   render();
-};
+});
 
 window.showInfo=function(id){
   const e=allEvents[id];
@@ -361,15 +400,17 @@ window.showInfo=function(id){
     details+=`<p><b>${key}:</b> ${value}</p>`;
   });
 
+  const modal=document.getElementById("infoModal");
   document.getElementById("modalContent").innerHTML=details;
-  document.getElementById("infoModal").style.display="flex";
+  modal.classList.add("show");
 };
 
 window.closeModal=function(){
-  document.getElementById("infoModal").style.display="none";
+  document.getElementById("infoModal").classList.remove("show");
 };
 
 </script>
+
 
 </body>
 </html>
