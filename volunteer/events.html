@@ -151,6 +151,14 @@
   <select id="categoryFilter"><option value="All">All Categories</option></select>
   <select id="cityFilter"><option value="All">All Cities</option></select>
   <button class="clear-btn" id="clearBtn">Clear</button>
+  <select id="sortSelect">
+  <option value="deadline">Sort by Deadline</option>
+  <option value="date">Sort by Event Date</option>
+  <option value="open">Only Open Events</option>
+  <option value="closingSoon">Closing Soon</option>
+  <option value="az">A → Z</option>
+  <option value="za">Z → A</option>
+</select>
 </div>
 
 <div id="eventsContainer"></div>
@@ -191,6 +199,10 @@ let showSavedOnly = false;
 
 const container = document.getElementById("eventsContainer");
 const savedBtn = document.getElementById("viewSavedBtn");
+const searchInput = document.getElementById("searchInput");
+const categoryFilter = document.getElementById("categoryFilter");
+const cityFilter = document.getElementById("cityFilter");
+const sortSelect = document.getElementById("sortSelect");
 
 // AUTH
 onAuthStateChanged(auth, (user)=>{
@@ -206,6 +218,7 @@ function loadData(){
 
   onValue(ref(db,"events"), snap=>{
     allEvents = snap.val() || {};
+    populateFilters();
     render();
   });
 
@@ -220,7 +233,32 @@ function loadData(){
   });
 }
 
-// RENDER EVENTS
+/* ---------------- FILTER DROPDOWNS ---------------- */
+
+function populateFilters(){
+
+  const categories = new Set();
+  const cities = new Set();
+
+  Object.values(allEvents).forEach(event=>{
+    if(event.category) categories.add(event.category);
+    if(event.location) cities.add(event.location);
+  });
+
+  categoryFilter.innerHTML = `<option value="All">All Categories</option>`;
+  cityFilter.innerHTML = `<option value="All">All Cities</option>`;
+
+  categories.forEach(cat=>{
+    categoryFilter.innerHTML += `<option value="${cat}">${cat}</option>`;
+  });
+
+  cities.forEach(city=>{
+    cityFilter.innerHTML += `<option value="${city}">${city}</option>`;
+  });
+}
+
+/* ---------------- RENDER EVENTS ---------------- */
+
 function render(){
 
   if(!currentUser) return;
@@ -228,11 +266,59 @@ function render(){
   container.innerHTML="";
   const today = new Date();
 
-  let events = Object.entries(allEvents).map(([id,data])=>({id,data}));
+  let events = Object.entries(allEvents)
+    .map(([id,data])=>({id,data}));
 
   if(showSavedOnly){
     events = events.filter(e=>savedEvents[e.id]);
   }
+
+  // SEARCH
+  const search = searchInput.value.toLowerCase();
+  events = events.filter(e=>
+    e.data.title?.toLowerCase().includes(search)
+  );
+
+  // CATEGORY FILTER
+  if(categoryFilter.value !== "All"){
+    events = events.filter(e=>
+      e.data.category === categoryFilter.value
+    );
+  }
+
+  // CITY FILTER
+  if(cityFilter.value !== "All"){
+    events = events.filter(e=>
+      e.data.location === cityFilter.value
+    );
+  }
+
+  // SORT / SPECIAL FILTERS
+  const sortType = sortSelect.value;
+
+  if(sortType === "deadline"){
+    events.sort((a,b)=>new Date(a.data.lastDate) - new Date(b.data.lastDate));
+  }
+  else if(sortType === "date"){
+    events.sort((a,b)=>new Date(a.data.date) - new Date(b.data.date));
+  }
+  else if(sortType === "open"){
+    events = events.filter(e=> new Date(e.data.lastDate) >= today);
+  }
+  else if(sortType === "closingSoon"){
+    events = events.filter(e=>{
+      const diff = (new Date(e.data.lastDate) - today)/(1000*60*60*24);
+      return diff <= 2 && diff >= 0;
+    });
+  }
+  else if(sortType === "az"){
+    events.sort((a,b)=>a.data.title.localeCompare(b.data.title));
+  }
+  else if(sortType === "za"){
+    events.sort((a,b)=>b.data.title.localeCompare(a.data.title));
+  }
+
+  /* ---------- DISPLAY ---------- */
 
   events.forEach(({id,data})=>{
 
@@ -242,7 +328,6 @@ function render(){
     const diffMs = deadline - today;
     const diffDaysAfter = Math.ceil((today - deadline)/(1000*60*60*24));
 
-    // 🔥 Hide after 5 days expired
     if(diffDaysAfter > 5) return;
 
     const isExpired = diffMs < 0;
@@ -256,30 +341,28 @@ function render(){
     const alreadyApplied = Object.values(applications)
       .some(a=>a.eventId===id && a.volunteerId===currentUser.uid);
 
-    // Badges
-    let badgeHTML = "";
+    let badgeHTML="";
 
     if(isExpired){
-      badgeHTML += `
+      badgeHTML+=`
         <span class="badge" 
         style="background:#fee2e2;color:#b91c1c;">
         ❌ Expired
         </span>`;
     }
     else if(days<=2){
-      badgeHTML += `
+      badgeHTML+=`
         <span class="badge" 
         style="background:#fef9c3;color:#92400e;">
-        ⚠ Applications Closing Soon
+        ⚠ Closing Soon
         </span>`;
     }
 
-    const card = document.createElement("div");
+    const card=document.createElement("div");
     card.className="event-card";
 
-    card.innerHTML = `
+    card.innerHTML=`
       <div class="event-title">${data.title}</div>
-
       <span class="badge badge-category">${data.category}</span>
       <span class="badge badge-city">${data.location}</span>
       ${badgeHTML}
@@ -298,18 +381,16 @@ function render(){
       }
 
       <div class="button-row">
-
-        <button class="apply-btn" 
+        <button class="apply-btn"
           ${alreadyApplied || isExpired ? "disabled":""}
           onclick="applyEvent('${id}')">
-          ${alreadyApplied ? "Applied" : "Apply"}
+          ${alreadyApplied ? "Applied":"Apply"}
         </button>
 
         <button class="save-btn"
           onclick="toggleSave('${id}')">
-          ${isSaved ? "★ Saved" : "☆ Save"}
+          ${isSaved ? "★ Saved":"☆ Save"}
         </button>
-
       </div>
     `;
 
@@ -317,7 +398,8 @@ function render(){
   });
 }
 
-// APPLY
+/* ---------------- APPLY ---------------- */
+
 window.applyEvent = async function(eventId){
 
   const newRef = push(ref(db,"applications"));
@@ -329,7 +411,8 @@ window.applyEvent = async function(eventId){
   });
 }
 
-// SAVE
+/* ---------------- SAVE ---------------- */
+
 window.toggleSave = async function(eventId){
 
   const saveRef = ref(db,"savedEvents/"+currentUser.uid+"/"+eventId);
@@ -341,7 +424,8 @@ window.toggleSave = async function(eventId){
   }
 }
 
-// Toggle Saved View
+/* ---------------- LISTENERS ---------------- */
+
 savedBtn.addEventListener("click",()=>{
   showSavedOnly=!showSavedOnly;
   savedBtn.innerText = showSavedOnly
@@ -350,10 +434,13 @@ savedBtn.addEventListener("click",()=>{
   render();
 });
 
-// 🔥 Live countdown refresh every minute
-setInterval(()=>{
-  render();
-},60000);
+searchInput.addEventListener("input",render);
+categoryFilter.addEventListener("change",render);
+cityFilter.addEventListener("change",render);
+sortSelect.addEventListener("change",render);
+
+// live refresh
+setInterval(()=>{ render(); },60000);
 
 </script>
 
