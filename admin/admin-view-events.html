@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Admin Events | SevaSphere</title>
+<title>All Events | SevaSphere Admin</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 body{
@@ -11,281 +13,365 @@ body{
   margin:0;
 }
 
-.top-bar{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:25px;
-}
-
 h2{
-  margin:0;
+  margin-bottom:20px;
   font-size:26px;
   font-weight:700;
-  color:#0f172a;
 }
 
-.my-events-btn{
-  background:linear-gradient(90deg,#06b6d4,#14b8a6);
-  color:white;
-  border:none;
-  padding:10px 20px;
-  border-radius:12px;
-  cursor:pointer;
-  font-weight:600;
+.filters{
+  background:white;
+  padding:15px;
+  border-radius:16px;
+  margin-bottom:25px;
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  box-shadow:0 8px 25px rgba(0,0,0,0.05);
+}
+
+input, select{
+  padding:10px;
+  border-radius:10px;
+  border:1px solid #ddd;
+  flex:1;
 }
 
 .event-card{
   background:white;
   border-radius:20px;
-  padding:25px;
+  padding:20px;
   margin-bottom:20px;
-  box-shadow:0 15px 40px rgba(0,0,0,0.06);
-}
-
-.event-title{
-  font-size:22px;
-  font-weight:700;
-  margin-bottom:10px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.06);
 }
 
 .badge{
-  display:inline-block;
-  padding:6px 14px;
+  padding:5px 12px;
   border-radius:20px;
   font-size:12px;
   font-weight:600;
-  margin-right:8px;
+  margin-right:6px;
 }
 
-.count-badge{
-  background:#0ea5e9;
-  color:white;
-}
+.count-badge{ background:#06b6d4; color:white; }
+.closed-badge{ background:#ef4444; color:white; }
 
 .progress-bar{
-  height:8px;
   background:#e5e7eb;
+  height:8px;
   border-radius:10px;
-  margin:8px 0;
+  margin-top:8px;
   overflow:hidden;
 }
 
 .progress-fill{
   height:100%;
-  background:linear-gradient(90deg,#22c55e,#16a34a);
+  transition:0.3s;
 }
 
-.info-btn{
-  background:#475569;
-  color:white;
-  border:none;
+button{
   padding:8px 14px;
+  border:none;
   border-radius:10px;
+  margin-right:6px;
+  margin-top:10px;
   cursor:pointer;
-  margin-right:8px;
+  color:white;
 }
 
-.danger-btn{
-  background:#dc2626;
-}
+.details-btn{ background:#64748b; }
+.edit-btn{ background:#3b82f6; }
+.delete-btn{ background:#ef4444; }
+.export-btn{ background:#10b981; }
 
-.edit-disabled{
-  background:#9ca3af;
+.disabled{
+  background:#94a3b8 !important;
   cursor:not-allowed;
-}
-
-.modal{
-  display:none;
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,0.4);
-  justify-content:center;
-  align-items:center;
-}
-
-.modal-content{
-  background:white;
-  padding:25px;
-  border-radius:20px;
-  width:450px;
-  max-width:90%;
 }
 </style>
 </head>
 
 <body>
 
-<div class="top-bar">
-  <h2>📂 Admin Events</h2>
-  <button id="myEventsBtn" class="my-events-btn">👤 My Events</button>
+<h2>📂 Admin Events</h2>
+
+<div style="background:white;padding:20px;border-radius:16px;margin-bottom:25px;">
+  <canvas id="analyticsChart"></canvas>
+</div>
+
+<div class="filters">
+  <input id="searchInput" placeholder="Search event...">
+  <select id="categoryFilter"><option value="All">All Categories</option></select>
+  <select id="cityFilter"><option value="All">All Cities</option></select>
+  <select id="sortFilter">
+    <option value="deadlineAsc">Sort by Deadline (Soonest)</option>
+    <option value="deadlineDesc">Sort by Deadline (Latest)</option>
+  </select>
 </div>
 
 <div id="eventsContainer"></div>
-
-<div class="modal" id="infoModal">
-  <div class="modal-content">
-    <span onclick="closeModal()" style="float:right;cursor:pointer;">✖</span>
-    <div id="modalContent"></div>
-  </div>
-</div>
 
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-import { getDatabase, ref, onValue, get, update, remove } 
+import { getDatabase, ref, onValue, remove, update, get }
 from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyA-z1Zx-0qAj6_FGiclcXFdIjiKSjXlUKw",
+  apiKey: "AIzaSy...",
   authDomain: "sevasphere-6dce7.firebaseapp.com",
-  databaseURL: "https://sevasphere-6dce7-default-rtdb.asia-southeast1.firebasedatabase.app/",
-  projectId: "sevasphere-6dce7",
-  storageBucket: "sevasphere-6dce7.appspot.com",
-  messagingSenderId: "930986469572",
-  appId: "1:930986469572:web:7c62c3e6ff7c3f90d98191"
+  databaseURL: "https://sevasphere-6dce7-default-rtdb.asia-southeast1.firebasedatabase.app/"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 
-let allEvents = {};
-let allApplications = {};
-let currentUser = null;
-let showMyEventsOnly = false;
+let currentUser=null;
+let allEvents={};
+let allApplications={};
+let allUsers={};
 
-onAuthStateChanged(auth, async(user)=>{
+const container=document.getElementById("eventsContainer");
+
+onAuthStateChanged(auth, async user=>{
+
   if(!user){
     window.location.href="admin-login.html";
     return;
   }
 
-  const userSnap = await get(ref(db,"users/"+user.uid));
-  if(!userSnap.exists() || userSnap.val().role !== "admin"){
+  const snap=await get(ref(db,"users/"+user.uid));
+  if(!snap.exists() || snap.val().role!=="admin"){
     window.location.href="../index.html";
     return;
   }
 
-  currentUser = user;
+  currentUser=user;
 
   onValue(ref(db,"events"), snap=>{
-    allEvents = snap.val() || {};
+    allEvents=snap.val()||{};
+    populateFilters();
     renderEvents();
+    renderAnalytics();
   });
 
   onValue(ref(db,"applications"), snap=>{
-    allApplications = snap.val() || {};
+    allApplications=snap.val()||{};
     renderEvents();
+    renderAnalytics();
+  });
+
+  onValue(ref(db,"users"), snap=>{
+    allUsers=snap.val()||{};
   });
 });
 
+/* ---------- FILTERS ---------- */
+function populateFilters(){
+  const categories=new Set();
+  const cities=new Set();
+
+  Object.values(allEvents).forEach(e=>{
+    if(e.category) categories.add(e.category);
+    if(e.location) cities.add(e.location);
+  });
+
+  const cat=document.getElementById("categoryFilter");
+  const city=document.getElementById("cityFilter");
+
+  cat.innerHTML='<option value="All">All Categories</option>';
+  city.innerHTML='<option value="All">All Cities</option>';
+
+  categories.forEach(c=>cat.innerHTML+=`<option>${c}</option>`);
+  cities.forEach(c=>city.innerHTML+=`<option>${c}</option>`);
+}
+
+/* ---------- RENDER EVENTS ---------- */
 function renderEvents(){
 
-  const container = document.getElementById("eventsContainer");
+  const search=document.getElementById("searchInput").value.toLowerCase();
+  const category=document.getElementById("categoryFilter").value;
+  const city=document.getElementById("cityFilter").value;
+  const sort=document.getElementById("sortFilter").value;
+
+  let eventsArr=Object.entries(allEvents).map(([id,data])=>({id,data}));
+
+  eventsArr=eventsArr.filter(ev=>{
+    if(category!=="All" && ev.data.category!==category) return false;
+    if(city!=="All" && ev.data.location!==city) return false;
+    if(!ev.data.title?.toLowerCase().includes(search)) return false;
+    return true;
+  });
+
+  eventsArr.sort((a,b)=>{
+    const d1=new Date(a.data.lastDate||0);
+    const d2=new Date(b.data.lastDate||0);
+    return sort==="deadlineAsc" ? d1-d2 : d2-d1;
+  });
+
   container.innerHTML="";
 
-  Object.entries(allEvents).forEach(([id,event])=>{
+  eventsArr.forEach(({id,data})=>{
 
-    if(showMyEventsOnly && event.createdBy !== currentUser.uid) return;
+    const isOwner=data.createdBy===currentUser.uid;
 
-    const acceptedApps = Object.values(allApplications).filter(
-      app => app.eventId === id && app.status === "Accepted"
-    );
+    const apps=Object.values(allApplications)
+      .filter(a=>a.eventId===id);
 
-    const totalApps = Object.values(allApplications).filter(
-      app => app.eventId === id
-    );
+    const accepted=apps.filter(a=>a.status==="Accepted");
 
-    const required = parseInt(event.volunteersRequired) || 0;
-    const filled = acceptedApps.length;
-    const percent = required ? (filled/required)*100 : 0;
+    const required=parseInt(data.volunteersRequired)||0;
+    const filled=accepted.length;
+    const percent=required? (filled/required)*100 : 0;
 
-    const today = new Date();
-    const deadline = event.lastDate ? new Date(event.lastDate) : null;
-
-    let daysLeft = "N/A";
-    let closed = false;
-
-    if(deadline){
-      const diff = Math.ceil((deadline - today)/(1000*60*60*24));
-      if(diff < 0){
-        daysLeft = "Closed";
-        closed = true;
-      } else {
-        daysLeft = diff + " days left";
-      }
+    let closed=false;
+    if(required && filled>=required){
+      closed=true;
+      update(ref(db,"events/"+id),{ closed:true });
     }
+
+    const deadline=new Date(data.lastDate||0);
+    const diff=Math.ceil((deadline-new Date())/(1000*60*60*24));
+    const daysLeft=diff<0?"Closed":diff+" days left";
+
+    let color="#22c55e";
+    if(percent>80) color="#ef4444";
+    else if(percent>50) color="#f59e0b";
 
     const card=document.createElement("div");
     card.className="event-card";
 
     card.innerHTML=`
-      <div class="event-title">${event.title}</div>
-      <span class="badge count-badge">Applications: ${totalApps.length}</span>
-      <div><b>Date:</b> ${event.date}</div>
-      <div><b>Deadline:</b> ${event.lastDate || "N/A"} (${daysLeft})</div>
-      <div><b>Filled:</b> ${filled} / ${required}</div>
+      <h3>${data.title}</h3>
+
+      <span class="badge count-badge">
+        Applications: ${apps.length}
+      </span>
+
+      ${closed?`<span class="badge closed-badge">Closed</span>`:""}
+
+      <div><b>Date:</b> ${data.date}</div>
+      <div><b>Deadline:</b> ${data.lastDate||"N/A"} (${daysLeft})</div>
+      <div><b>Filled:</b> ${filled}/${required}</div>
 
       <div class="progress-bar">
-        <div class="progress-fill" style="width:${percent}%"></div>
+        <div class="progress-fill"
+             style="width:${percent}%;background:${color}">
+        </div>
       </div>
 
-      <button class="info-btn" onclick="showInfo('${id}')">ℹ Details</button>
-
-      <button class="info-btn ${closed ? 'edit-disabled' : ''}"
-        ${closed ? 'disabled' : ''}
-        onclick="editEvent('${id}')">
-        ✏ Edit
+      <button class="details-btn" onclick="alert('${data.description||"No Description"}')">
+        Details
       </button>
 
-      <button class="info-btn danger-btn"
-        onclick="deleteEvent('${id}')">
-        🗑 Delete
+      <button class="export-btn"
+        onclick="exportCSV('${id}')">
+        Export CSV
       </button>
+
+      ${
+        isOwner?
+        `
+        <button class="edit-btn ${closed?'disabled':''}"
+          ${closed?'disabled':''}
+          onclick="editEvent('${id}')">
+          Edit
+        </button>
+
+        <button class="delete-btn"
+          onclick="deleteEvent('${id}')">
+          Delete
+        </button>
+        `:""
+      }
     `;
 
     container.appendChild(card);
   });
 }
 
-window.showInfo=function(id){
-  const e = allEvents[id];
-  document.getElementById("modalContent").innerHTML=`
-    <h3>${e.title}</h3>
-    <p><b>Category:</b> ${e.category}</p>
-    <p><b>Location:</b> ${e.location}</p>
-    <p><b>Skills Required:</b> ${e.skillsRequired || "N/A"}</p>
-    <p><b>Additional Requirements:</b> ${e.additionalRequirements || "N/A"}</p>
-    <p>${e.description}</p>
-  `;
-  document.getElementById("infoModal").style.display="flex";
-};
+/* ---------- EXPORT CSV ---------- */
+window.exportCSV=function(eventId){
 
-window.closeModal=function(){
-  document.getElementById("infoModal").style.display="none";
-};
+  const apps=Object.values(allApplications)
+    .filter(a=>a.eventId===eventId);
 
-window.deleteEvent=function(id){
-  if(confirm("Delete this event?")){
-    remove(ref(db,"events/"+id));
+  if(apps.length===0){
+    alert("No applicants found.");
+    return;
   }
+
+  let csv="Name,Email,Status\n";
+
+  apps.forEach(app=>{
+    const user=allUsers[app.volunteerId];
+    if(!user) return;
+    csv+=`${user.name},${user.email},${app.status}\n`;
+  });
+
+  const blob=new Blob([csv],{type:"text/csv"});
+  const url=URL.createObjectURL(blob);
+
+  const link=document.createElement("a");
+  link.href=url;
+  link.download="Applicants.csv";
+  link.click();
+};
+
+/* ---------- OWNER SECURITY ---------- */
+window.deleteEvent=function(id){
+  if(allEvents[id].createdBy!==currentUser.uid){
+    alert("Not allowed");
+    return;
+  }
+  remove(ref(db,"events/"+id));
 };
 
 window.editEvent=function(id){
-  const e = allEvents[id];
-  const newTitle = prompt("Edit Title:", e.title);
-  if(newTitle){
-    update(ref(db,"events/"+id),{title:newTitle});
+  if(allEvents[id].createdBy!==currentUser.uid){
+    alert("Not allowed");
+    return;
   }
+  alert("Redirect to edit page.");
 };
 
-document.getElementById("myEventsBtn").addEventListener("click",()=>{
-  showMyEventsOnly=!showMyEventsOnly;
-  renderEvents();
-});
+/* ---------- ANALYTICS ---------- */
+function renderAnalytics(){
+
+  const ctx=document.getElementById("analyticsChart");
+
+  const totalEvents=Object.keys(allEvents).length;
+  const totalApps=Object.values(allApplications).length;
+  const accepted=Object.values(allApplications)
+    .filter(a=>a.status==="Accepted").length;
+  const rejected=Object.values(allApplications)
+    .filter(a=>a.status==="Rejected").length;
+
+  new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels:['Events','Applications','Accepted','Rejected'],
+      datasets:[{
+        data:[totalEvents,totalApps,accepted,rejected],
+        backgroundColor:['#3b82f6','#06b6d4','#22c55e','#ef4444']
+      }]
+    },
+    options:{
+      plugins:{legend:{display:false}},
+      responsive:true
+    }
+  });
+}
+
+/* ---------- LISTENERS ---------- */
+document.getElementById("searchInput").addEventListener("input",renderEvents);
+document.getElementById("categoryFilter").addEventListener("change",renderEvents);
+document.getElementById("cityFilter").addEventListener("change",renderEvents);
+document.getElementById("sortFilter").addEventListener("change",renderEvents);
 
 </script>
+
 </body>
 </html>
