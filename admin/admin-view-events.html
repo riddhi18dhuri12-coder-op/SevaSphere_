@@ -1,111 +1,129 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>All Events | SevaSphere Admin</title>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<title>Admin Events | SevaSphere</title>
 
 <style>
 body{
-  background:linear-gradient(135deg,#e0f7fa,#f0fdf4);
-  font-family:'Segoe UI',sans-serif;
-  padding:30px;
   margin:0;
+  padding:30px;
+  font-family:'Segoe UI',sans-serif;
+  background:linear-gradient(135deg,#e0f7fa,#f0fdf4);
+}
+
+/* Top Bar */
+.top-bar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:25px;
 }
 
 h2{
-  margin-bottom:20px;
-  font-size:26px;
-  font-weight:700;
+  margin:0;
+  color:#0f172a;
 }
 
+.my-btn{
+  background:linear-gradient(90deg,#06b6d4,#14b8a6);
+  color:white;
+  border:none;
+  padding:10px 20px;
+  border-radius:12px;
+  cursor:pointer;
+  font-weight:600;
+}
+
+/* Filters */
 .filters{
   background:white;
   padding:15px;
-  border-radius:16px;
-  margin-bottom:25px;
+  border-radius:15px;
   display:flex;
-  gap:12px;
+  gap:15px;
   flex-wrap:wrap;
-  box-shadow:0 8px 25px rgba(0,0,0,0.05);
+  margin-bottom:25px;
 }
 
-input, select{
+input,select{
   padding:10px;
-  border-radius:10px;
+  border-radius:8px;
   border:1px solid #ddd;
-  flex:1;
 }
 
+/* Event Card */
 .event-card{
   background:white;
-  border-radius:20px;
-  padding:20px;
+  padding:25px;
+  border-radius:18px;
   margin-bottom:20px;
   box-shadow:0 10px 30px rgba(0,0,0,0.06);
 }
 
+.title{
+  font-size:20px;
+  font-weight:600;
+  margin-bottom:10px;
+}
+
 .badge{
+  background:#e0f2fe;
+  color:#0369a1;
   padding:5px 12px;
   border-radius:20px;
   font-size:12px;
-  font-weight:600;
-  margin-right:6px;
+  margin-right:8px;
 }
 
-.count-badge{ background:#06b6d4; color:white; }
-.closed-badge{ background:#ef4444; color:white; }
-
-.progress-bar{
-  background:#e5e7eb;
+.progress{
   height:8px;
   border-radius:10px;
   margin-top:8px;
-  overflow:hidden;
+  background:#eee;
 }
 
-.progress-fill{
-  height:100%;
-  transition:0.3s;
+.progress-bar{
+  height:8px;
+  border-radius:10px;
 }
 
-button{
+.green{ background:#22c55e; }
+.orange{ background:#f59e0b; }
+.red{ background:#ef4444; }
+
+.btn{
   padding:8px 14px;
   border:none;
-  border-radius:10px;
+  border-radius:8px;
+  cursor:pointer;
   margin-right:6px;
   margin-top:10px;
-  cursor:pointer;
-  color:white;
+  font-size:13px;
 }
 
-.details-btn{ background:#64748b; }
-.edit-btn{ background:#3b82f6; }
-.delete-btn{ background:#ef4444; }
-.export-btn{ background:#10b981; }
+.edit{ background:#06b6d4; color:white; }
+.delete{ background:#ef4444; color:white; }
+.view{ background:#64748b; color:white; }
 
-.disabled{
-  background:#94a3b8 !important;
-  cursor:not-allowed;
+.small{
+  font-size:13px;
+  color:#555;
+  margin-top:5px;
 }
 </style>
 </head>
-
 <body>
 
-<h2>📂 Admin Events</h2>
-
-<div style="background:white;padding:20px;border-radius:16px;margin-bottom:25px;">
-  <canvas id="analyticsChart"></canvas>
+<div class="top-bar">
+  <h2>📂 Admin Events</h2>
+  <button id="myEventsBtn" class="my-btn">👤 My Events</button>
 </div>
 
 <div class="filters">
   <input id="searchInput" placeholder="Search event...">
-  <select id="categoryFilter"><option value="All">All Categories</option></select>
-  <select id="cityFilter"><option value="All">All Cities</option></select>
-  <select id="sortFilter">
-    <option value="deadlineAsc">Sort by Deadline (Soonest)</option>
-    <option value="deadlineDesc">Sort by Deadline (Latest)</option>
+  <select id="sortSelect">
+    <option value="deadline">Sort by Deadline</option>
+    <option value="date">Sort by Event Date</option>
   </select>
 </div>
 
@@ -115,261 +133,164 @@ button{
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-import { getDatabase, ref, onValue, remove, update, get }
+import { getDatabase, ref, onValue, get, update, remove }
 from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSy...",
+  apiKey: "AIzaSyA-z1Zx-0qAj6_FGiclcXFdIjiKSjXlUKw",
   authDomain: "sevasphere-6dce7.firebaseapp.com",
-  databaseURL: "https://sevasphere-6dce7-default-rtdb.asia-southeast1.firebasedatabase.app/"
+  databaseURL: "https://sevasphere-6dce7-default-rtdb.asia-southeast1.firebasedatabase.app/",
+  projectId: "sevasphere-6dce7",
+  storageBucket: "sevasphere-6dce7.appspot.com",
+  messagingSenderId: "930986469572",
+  appId: "1:930986469572:web:7c62c3e6ff7c3f90d98191"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 
-let currentUser=null;
-let allEvents={};
-let allApplications={};
-let allUsers={};
+let currentUser = null;
+let allEvents = {};
+let allApplications = {};
+let showMineOnly = false;
 
-const container=document.getElementById("eventsContainer");
+const container = document.getElementById("eventsContainer");
 
-onAuthStateChanged(auth, async user=>{
+onAuthStateChanged(auth, async (user)=>{
 
   if(!user){
     window.location.href="admin-login.html";
     return;
   }
 
-  const snap=await get(ref(db,"users/"+user.uid));
-  if(!snap.exists() || snap.val().role!=="admin"){
-    window.location.href="../index.html";
+  const snap = await get(ref(db,"users/"+user.uid));
+  if(!snap.exists() || snap.val().role !== "admin"){
+    alert("Access Denied");
+    window.location.href="admin-login.html";
     return;
   }
 
-  currentUser=user;
+  currentUser = user;
+
+  loadData();
+});
+
+function loadData(){
 
   onValue(ref(db,"events"), snap=>{
-    allEvents=snap.val()||{};
-    populateFilters();
-    renderEvents();
-    renderAnalytics();
+    allEvents = snap.val() || {};
+    render();
   });
 
   onValue(ref(db,"applications"), snap=>{
-    allApplications=snap.val()||{};
-    renderEvents();
-    renderAnalytics();
+    allApplications = snap.val() || {};
+    render();
   });
-
-  onValue(ref(db,"users"), snap=>{
-    allUsers=snap.val()||{};
-  });
-});
-
-/* ---------- FILTERS ---------- */
-function populateFilters(){
-  const categories=new Set();
-  const cities=new Set();
-
-  Object.values(allEvents).forEach(e=>{
-    if(e.category) categories.add(e.category);
-    if(e.location) cities.add(e.location);
-  });
-
-  const cat=document.getElementById("categoryFilter");
-  const city=document.getElementById("cityFilter");
-
-  cat.innerHTML='<option value="All">All Categories</option>';
-  city.innerHTML='<option value="All">All Cities</option>';
-
-  categories.forEach(c=>cat.innerHTML+=`<option>${c}</option>`);
-  cities.forEach(c=>city.innerHTML+=`<option>${c}</option>`);
 }
 
-/* ---------- RENDER EVENTS ---------- */
-function renderEvents(){
+function render(){
 
-  const search=document.getElementById("searchInput").value.toLowerCase();
-  const category=document.getElementById("categoryFilter").value;
-  const city=document.getElementById("cityFilter").value;
-  const sort=document.getElementById("sortFilter").value;
-
-  let eventsArr=Object.entries(allEvents).map(([id,data])=>({id,data}));
-
-  eventsArr=eventsArr.filter(ev=>{
-    if(category!=="All" && ev.data.category!==category) return false;
-    if(city!=="All" && ev.data.location!==city) return false;
-    if(!ev.data.title?.toLowerCase().includes(search)) return false;
-    return true;
-  });
-
-  eventsArr.sort((a,b)=>{
-    const d1=new Date(a.data.lastDate||0);
-    const d2=new Date(b.data.lastDate||0);
-    return sort==="deadlineAsc" ? d1-d2 : d2-d1;
-  });
+  if(!currentUser) return;
 
   container.innerHTML="";
 
-  eventsArr.forEach(({id,data})=>{
+  let events = Object.entries(allEvents).map(([id,data])=>({id,data}));
 
-    const isOwner=data.createdBy===currentUser.uid;
+  if(showMineOnly){
+    events = events.filter(e=>e.data.createdBy === currentUser.uid);
+  }
 
-    const apps=Object.values(allApplications)
-      .filter(a=>a.eventId===id);
+  const search = document.getElementById("searchInput").value.toLowerCase();
+  events = events.filter(e=>e.data.title?.toLowerCase().includes(search));
 
-    const accepted=apps.filter(a=>a.status==="Accepted");
+  const sortType = document.getElementById("sortSelect").value;
 
-    const required=parseInt(data.volunteersRequired)||0;
-    const filled=accepted.length;
-    const percent=required? (filled/required)*100 : 0;
+  if(sortType==="deadline"){
+    events.sort((a,b)=>new Date(a.data.lastDate) - new Date(b.data.lastDate));
+  }else{
+    events.sort((a,b)=>new Date(a.data.date) - new Date(b.data.date));
+  }
 
-    let closed=false;
+  events.forEach(({id,data})=>{
+
+    const applications = Object.values(allApplications)
+      .filter(a=>a.eventId===id && a.status==="Accepted");
+
+    const filled = applications.length;
+    const required = data.volunteersRequired || 0;
+
+    const percent = required ? (filled/required)*100 : 0;
+
+    let color = "green";
+    if(percent>=90) color="red";
+    else if(percent>=60) color="orange";
+
+    // auto close
     if(required && filled>=required){
-      closed=true;
-      update(ref(db,"events/"+id),{ closed:true });
+      update(ref(db,"events/"+id),{ status:"Closed" });
     }
 
-    const deadline=new Date(data.lastDate||0);
-    const diff=Math.ceil((deadline-new Date())/(1000*60*60*24));
-    const daysLeft=diff<0?"Closed":diff+" days left";
+    const deadline = new Date(data.lastDate);
+    const today = new Date();
+    const daysLeft = Math.ceil((deadline - today)/(1000*60*60*24));
 
-    let color="#22c55e";
-    if(percent>80) color="#ef4444";
-    else if(percent>50) color="#f59e0b";
+    const isClosed = data.status==="Closed" || daysLeft<0;
 
-    const card=document.createElement("div");
+    const card = document.createElement("div");
     card.className="event-card";
 
     card.innerHTML=`
-      <h3>${data.title}</h3>
+      <div class="title">${data.title}</div>
+      <span class="badge">${data.category}</span>
 
-      <span class="badge count-badge">
-        Applications: ${apps.length}
-      </span>
+      <div class="small"><b>Date:</b> ${data.date}</div>
+      <div class="small"><b>Deadline:</b> ${data.lastDate} (${daysLeft>0?daysLeft+" days left":"Closed"})</div>
+      <div class="small"><b>Volunteers:</b> ${filled} / ${required}</div>
 
-      ${closed?`<span class="badge closed-badge">Closed</span>`:""}
-
-      <div><b>Date:</b> ${data.date}</div>
-      <div><b>Deadline:</b> ${data.lastDate||"N/A"} (${daysLeft})</div>
-      <div><b>Filled:</b> ${filled}/${required}</div>
-
-      <div class="progress-bar">
-        <div class="progress-fill"
-             style="width:${percent}%;background:${color}">
-        </div>
+      <div class="progress">
+        <div class="progress-bar ${color}" style="width:${percent}%"></div>
       </div>
 
-      <button class="details-btn" onclick="alert('${data.description||"No Description"}')">
-        Details
-      </button>
+      <div class="small"><b>Skills:</b> ${data.skillsRequired||"None"}</div>
+      <div class="small"><b>Additional:</b> ${data.additionalRequirements||"None"}</div>
 
-      <button class="export-btn"
-        onclick="exportCSV('${id}')">
-        Export CSV
-      </button>
+      <button class="btn view" onclick="viewEvent('${id}')">View</button>
 
-      ${
-        isOwner?
-        `
-        <button class="edit-btn ${closed?'disabled':''}"
-          ${closed?'disabled':''}
-          onclick="editEvent('${id}')">
-          Edit
-        </button>
-
-        <button class="delete-btn"
-          onclick="deleteEvent('${id}')">
-          Delete
-        </button>
-        `:""
-      }
+      ${data.createdBy===currentUser.uid ? `
+        <button class="btn edit" 
+          ${isClosed?"disabled":""}
+          onclick="editEvent('${id}')">Edit</button>
+        <button class="btn delete"
+          onclick="deleteEvent('${id}')">Delete</button>
+      ` : ""}
     `;
 
     container.appendChild(card);
   });
 }
 
-/* ---------- EXPORT CSV ---------- */
-window.exportCSV=function(eventId){
-
-  const apps=Object.values(allApplications)
-    .filter(a=>a.eventId===eventId);
-
-  if(apps.length===0){
-    alert("No applicants found.");
-    return;
+window.deleteEvent = function(id){
+  if(confirm("Delete this event?")){
+    remove(ref(db,"events/"+id));
   }
-
-  let csv="Name,Email,Status\n";
-
-  apps.forEach(app=>{
-    const user=allUsers[app.volunteerId];
-    if(!user) return;
-    csv+=`${user.name},${user.email},${app.status}\n`;
-  });
-
-  const blob=new Blob([csv],{type:"text/csv"});
-  const url=URL.createObjectURL(blob);
-
-  const link=document.createElement("a");
-  link.href=url;
-  link.download="Applicants.csv";
-  link.click();
-};
-
-/* ---------- OWNER SECURITY ---------- */
-window.deleteEvent=function(id){
-  if(allEvents[id].createdBy!==currentUser.uid){
-    alert("Not allowed");
-    return;
-  }
-  remove(ref(db,"events/"+id));
-};
-
-window.editEvent=function(id){
-  if(allEvents[id].createdBy!==currentUser.uid){
-    alert("Not allowed");
-    return;
-  }
-  alert("Redirect to edit page.");
-};
-
-/* ---------- ANALYTICS ---------- */
-function renderAnalytics(){
-
-  const ctx=document.getElementById("analyticsChart");
-
-  const totalEvents=Object.keys(allEvents).length;
-  const totalApps=Object.values(allApplications).length;
-  const accepted=Object.values(allApplications)
-    .filter(a=>a.status==="Accepted").length;
-  const rejected=Object.values(allApplications)
-    .filter(a=>a.status==="Rejected").length;
-
-  new Chart(ctx,{
-    type:'bar',
-    data:{
-      labels:['Events','Applications','Accepted','Rejected'],
-      datasets:[{
-        data:[totalEvents,totalApps,accepted,rejected],
-        backgroundColor:['#3b82f6','#06b6d4','#22c55e','#ef4444']
-      }]
-    },
-    options:{
-      plugins:{legend:{display:false}},
-      responsive:true
-    }
-  });
 }
 
-/* ---------- LISTENERS ---------- */
-document.getElementById("searchInput").addEventListener("input",renderEvents);
-document.getElementById("categoryFilter").addEventListener("change",renderEvents);
-document.getElementById("cityFilter").addEventListener("change",renderEvents);
-document.getElementById("sortFilter").addEventListener("change",renderEvents);
+window.editEvent = function(id){
+  window.location.href="edit-event.html?id="+id;
+}
+
+window.viewEvent = function(id){
+  alert("Implement detailed modal if needed");
+}
+
+document.getElementById("myEventsBtn").addEventListener("click",()=>{
+  showMineOnly=!showMineOnly;
+  render();
+});
+
+document.getElementById("searchInput").addEventListener("input",render);
+document.getElementById("sortSelect").addEventListener("change",render);
 
 </script>
 
