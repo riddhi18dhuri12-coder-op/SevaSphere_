@@ -5,85 +5,80 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
+
+/* 🌿 Glass NGO Background */
 body{
   margin:0;
   padding:30px;
   font-family:'Segoe UI',sans-serif;
-  background:#f1f5f9;
+  background:linear-gradient(135deg,#0f172a,#0ea5a4);
+  min-height:100vh;
+  color:#0f172a;
 }
 
-/* HEADER */
+/* Header */
 .top-bar{
   display:flex;
   justify-content:space-between;
   align-items:center;
   margin-bottom:25px;
-}
-
-h2{
-  margin:0;
-  color:#0f172a;
+  color:white;
 }
 
 .my-btn{
-  background:#0ea5a4;
+  background:rgba(255,255,255,0.2);
+  backdrop-filter:blur(10px);
+  border:1px solid rgba(255,255,255,0.3);
   color:white;
-  border:none;
-  padding:10px 20px;
-  border-radius:10px;
+  padding:10px 18px;
+  border-radius:12px;
   cursor:pointer;
-  font-weight:600;
 }
 
-/* FILTERS */
+/* Glass Filters */
 .filters{
-  background:white;
-  padding:18px;
-  border-radius:14px;
-  display:flex;
-  gap:15px;
-  flex-wrap:wrap;
+  background:rgba(255,255,255,0.2);
+  backdrop-filter:blur(15px);
+  padding:20px;
+  border-radius:18px;
   margin-bottom:25px;
-  box-shadow:0 5px 20px rgba(0,0,0,0.05);
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
 }
 
 input,select{
   padding:10px;
-  border-radius:8px;
-  border:1px solid #cbd5e1;
-}
-
-.clear-btn{
-  background:#dc2626;
-  color:white;
+  border-radius:10px;
   border:none;
-  padding:10px 15px;
-  border-radius:8px;
-  cursor:pointer;
+  outline:none;
 }
 
-/* CARD */
+/* Glass Card */
 .event-card{
-  background:white;
+  background:rgba(255,255,255,0.25);
+  backdrop-filter:blur(18px);
+  border:1px solid rgba(255,255,255,0.3);
   padding:20px;
-  border-radius:16px;
+  border-radius:20px;
   margin-bottom:20px;
-  box-shadow:0 8px 25px rgba(0,0,0,0.05);
+  color:white;
+  box-shadow:0 10px 30px rgba(0,0,0,0.2);
 }
 
 .badge{
-  background:#e0f2fe;
-  color:#0369a1;
   padding:5px 12px;
   border-radius:20px;
   font-size:12px;
   margin-right:6px;
+  background:rgba(255,255,255,0.3);
 }
 
+/* Buttons */
 .btn{
   padding:8px 14px;
   border:none;
-  border-radius:8px;
+  border-radius:10px;
   cursor:pointer;
   margin-right:6px;
   margin-top:10px;
@@ -94,51 +89,54 @@ input,select{
 .save{ background:#f59e0b; color:white; }
 .info{ background:#334155; color:white; }
 
-/* MODAL */
+.btn:disabled{
+  background:gray;
+  cursor:not-allowed;
+}
+
+/* Modal */
 .modal{
   display:none;
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,0.5);
+  background:rgba(0,0,0,0.6);
   justify-content:center;
   align-items:center;
 }
 
 .modal-content{
   background:white;
-  width:90%;
-  max-width:500px;
+  color:black;
   padding:25px;
   border-radius:15px;
+  width:90%;
+  max-width:500px;
 }
+
 </style>
 </head>
 <body>
 
 <div class="top-bar">
-  <h2>📂 Admin Events</h2>
-  <button id="viewSavedBtn" class="my-btn">⭐ View Saved</button>
+  <h2>🌿 SevaSphere Events</h2>
+  <button id="viewSavedBtn" class="my-btn">⭐ Saved</button>
 </div>
 
 <div class="filters">
   <input type="text" id="searchInput" placeholder="Search events">
   <select id="categoryFilter"><option value="All">All Categories</option></select>
   <select id="cityFilter"><option value="All">All Cities</option></select>
-  <select id="sortSelect">
-    <option value="deadline">Sort by Deadline</option>
-    <option value="date">Sort by Event Date</option>
-  </select>
-  <button id="clearFilters" class="clear-btn">Clear</button>
+  <button id="clearBtn">Clear</button>
 </div>
 
 <div id="eventsContainer"></div>
 
-<!-- MODAL -->
+<!-- Info Modal -->
 <div id="infoModal" class="modal">
   <div class="modal-content">
     <h3 id="modalTitle"></h3>
-    <p id="modalBody"></p>
-    <button onclick="closeModal()" class="my-btn">Close</button>
+    <div id="modalBody"></div>
+    <button onclick="closeModal()">Close</button>
   </div>
 </div>
 
@@ -146,7 +144,7 @@ input,select{
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-import { getDatabase, ref, onValue, push, set }
+import { getDatabase, ref, onValue, push, set, remove }
 from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
 
 const firebaseConfig = {
@@ -166,6 +164,7 @@ const db = getDatabase(app);
 let currentUser=null;
 let allEvents={};
 let savedEvents={};
+let applications={};
 let showSavedOnly=false;
 
 const container=document.getElementById("eventsContainer");
@@ -187,8 +186,13 @@ function loadData(){
     savedEvents=snap.val()||{};
     render();
   });
+
+  onValue(ref(db,"applications"),snap=>{
+    applications=snap.val()||{};
+  });
 }
 
+/* Populate Filters */
 function populateFilters(){
   const categories=new Set();
   const cities=new Set();
@@ -205,6 +209,7 @@ function populateFilters(){
   cities.forEach(c=> cityFilter.innerHTML+=`<option>${c}</option>`);
 }
 
+/* Render */
 function render(){
 
   container.innerHTML="";
@@ -221,11 +226,14 @@ function render(){
     const isExpired=diffMs<0;
     const isClosingSoon=diffDays<=2 && diffDays>=0;
 
+    const alreadyApplied=applications &&
+      Object.values(applications).some(a=>a.eventId===id && a.volunteerId===currentUser.uid);
+
     let badge="";
     if(isExpired){
-      badge=`<span class="badge" style="background:#fee2e2;color:#b91c1c;">❌ Expired</span>`;
+      badge=`<span class="badge" style="background:#dc2626;">❌ Expired</span>`;
     } else if(isClosingSoon){
-      badge=`<span class="badge" style="background:#fef9c3;color:#92400e;">⚠ Closing Soon</span>`;
+      badge=`<span class="badge" style="background:#f59e0b;">⚠ Closing Soon</span>`;
     }
 
     const card=document.createElement("div");
@@ -239,13 +247,21 @@ function render(){
       <div><b>Date:</b> ${data.date}</div>
       <div><b>Deadline:</b> ${data.lastDate}</div>
 
-      ${!isExpired ? `<div style="font-size:13px;margin-top:6px;">
-      ⏳ ${Math.floor(diffMs/(1000*60*60*24))} days left</div>`:""}
+      ${!isExpired ?
+        `<div style="font-size:13px;margin-top:6px;">
+        ⏳ ${Math.floor(diffMs/(1000*60*60*24))} days left</div>`:""}
 
       <div>
         <button class="btn info" onclick="showInfo('${id}')">Info</button>
-        <button class="btn apply" ${isExpired?"disabled":""}>Apply</button>
-        <button class="btn save">${savedEvents[id]?"★ Saved":"☆ Save"}</button>
+        <button class="btn apply"
+          ${isExpired||alreadyApplied?"disabled":""}
+          onclick="applyEvent('${id}')">
+          ${alreadyApplied?"Applied":"Apply"}
+        </button>
+        <button class="btn save"
+          onclick="toggleSave('${id}')">
+          ${savedEvents[id]?"★ Saved":"☆ Save"}
+        </button>
       </div>
     `;
 
@@ -253,32 +269,43 @@ function render(){
   });
 }
 
-/* INFO MODAL */
+/* Apply */
+window.applyEvent=async function(id){
+  const newRef=push(ref(db,"applications"));
+  await set(newRef,{
+    eventId:id,
+    volunteerId:currentUser.uid,
+    appliedAt:Date.now()
+  });
+};
+
+/* Save Toggle */
+window.toggleSave=async function(id){
+  const saveRef=ref(db,"savedEvents/"+currentUser.uid+"/"+id);
+  if(savedEvents[id]){
+    await remove(saveRef);
+  } else {
+    await set(saveRef,true);
+  }
+};
+
+/* Modal */
 window.showInfo=function(id){
   const data=allEvents[id];
-  document.getElementById("modalTitle").innerText=data.title;
-  document.getElementById("modalBody").innerHTML=`
+  modalTitle.innerText=data.title;
+  modalBody.innerHTML=`
     <b>Category:</b> ${data.category}<br>
     <b>City:</b> ${data.location}<br>
     <b>Date:</b> ${data.date}<br>
-    <b>Deadline:</b> ${data.lastDate}<br>
-    <b>Description:</b><br>${data.description || "No description provided"}
+    <b>Deadline:</b> ${data.lastDate}<br><br>
+    ${data.description||"No description provided"}
   `;
-  document.getElementById("infoModal").style.display="flex";
-}
+  infoModal.style.display="flex";
+};
 
 window.closeModal=function(){
-  document.getElementById("infoModal").style.display="none";
-}
-
-/* CLEAR FILTER */
-document.getElementById("clearFilters").addEventListener("click",()=>{
-  searchInput.value="";
-  categoryFilter.value="All";
-  cityFilter.value="All";
-  sortSelect.value="deadline";
-  render();
-});
+  infoModal.style.display="none";
+};
 
 setInterval(()=>{render();},60000);
 
