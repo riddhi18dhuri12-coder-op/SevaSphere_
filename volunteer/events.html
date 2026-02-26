@@ -19,7 +19,7 @@ body{
   margin:0;
   padding:30px;
   font-family:'Segoe UI',sans-serif;
-  background:linear-gradient(135deg,var(--primary),var(--secondary));
+  background:linear-gradient(135deg,#B26BD8,#8A5CF6);
   min-height:100vh;
 }
 
@@ -40,32 +40,6 @@ body{
   border-radius:12px;
   cursor:pointer;
   font-weight:600;
-}
-
-.filters{
-  background:white;
-  padding:20px;
-  border-radius:20px;
-  display:flex;
-  gap:15px;
-  flex-wrap:wrap;
-  margin-bottom:30px;
-}
-
-input, select{
-  padding:12px;
-  border-radius:10px;
-  border:1px solid #ccc;
-  flex:1;
-}
-
-.clear-btn{
-  background:var(--secondary);
-  color:white;
-  border:none;
-  border-radius:10px;
-  padding:12px 18px;
-  cursor:pointer;
 }
 
 .event-card{
@@ -97,7 +71,7 @@ input, select{
 .badge-category{ background:#e0f2fe; color:#0369a1; }
 .badge-city{ background:#dcfce7; color:#15803d; }
 
-.countdown{
+.vacancy{
   font-weight:600;
   margin-top:8px;
   color:var(--secondary);
@@ -143,31 +117,6 @@ input, select{
   cursor:pointer;
 }
 
-.modal{
-  display:none;
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,0.5);
-  justify-content:center;
-  align-items:center;
-}
-
-.modal-content{
-  background:white;
-  padding:30px;
-  border-radius:20px;
-  width:450px;
-  max-width:95%;
-  max-height:80vh;
-  overflow-y:auto;
-}
-
-.close-btn{
-  float:right;
-  cursor:pointer;
-  font-weight:bold;
-}
-
 </style>
 </head>
 
@@ -178,29 +127,7 @@ input, select{
   <button id="viewSavedBtn" class="view-saved-btn">⭐ View Saved Events</button>
 </div>
 
-<div class="filters">
-  <input id="searchInput" placeholder="Search event name...">
-  <select id="categoryFilter"><option value="All">All Categories</option></select>
-  <select id="cityFilter"><option value="All">All Cities</option></select>
-  <select id="sortSelect">
-    <option value="date">Sort by Event Date</option>
-    <option value="deadline">Sort by Deadline</option>
-    <option value="open">Only Open</option>
-    <option value="closingSoon">Closing Soon</option>
-    <option value="az">A → Z</option>
-    <option value="za">Z → A</option>
-  </select>
-  <button class="clear-btn" id="clearBtn">Clear</button>
-</div>
-
 <div id="eventsContainer"></div>
-
-<div class="modal" id="infoModal">
-  <div class="modal-content">
-    <span class="close-btn" onclick="closeModal()">✖</span>
-    <div id="modalContent"></div>
-  </div>
-</div>
 
 <script type="module">
 
@@ -228,6 +155,7 @@ let currentUser=null;
 let showSavedOnly=false;
 
 const container=document.getElementById("eventsContainer");
+const viewSavedBtn=document.getElementById("viewSavedBtn");
 
 onAuthStateChanged(auth,(user)=>{
   if(!user){ window.location.href="volunteer-login.html"; return; }
@@ -258,13 +186,24 @@ function render(){
   Object.entries(allEvents).forEach(([id,data])=>{
 
     if(new Date(data.date)<today) return;
+    if(showSavedOnly && !savedEvents[id]) return;
 
     const deadline=new Date(data.lastDate);
-    const diff=deadline-today;
-    const isExpired=diff<0;
+    const isExpired=deadline<today;
 
-    const alreadyApplied=Object.values(applications)
-      .some(a=>a.eventId===id && a.volunteerId===currentUser.uid);
+    const eventApps=Object.values(applications)
+      .filter(a=>a.eventId===id);
+
+    const approvedCount=eventApps
+      .filter(a=>a.status==="Approved").length;
+
+    const vacancy=Math.max(
+      (data.volunteersRequired||0)-approvedCount,
+      0
+    );
+
+    const alreadyApplied=eventApps
+      .some(a=>a.volunteerId===currentUser.uid);
 
     const card=document.createElement("div");
     card.className="event-card";
@@ -273,46 +212,35 @@ function render(){
       <div class="event-title">${data.title}</div>
       <span class="badge badge-category">${data.category||""}</span>
       <span class="badge badge-city">${data.location||""}</span>
-      ${isExpired?'<span class="badge" style="background:#fee2e2;color:#b91c1c;">❌ Expired</span>':""}
+
       <div><b>Date:</b> ${data.date}</div>
       <div><b>Last Date:</b> ${data.lastDate}</div>
-      ${!isExpired?`<div class="countdown" id="timer-${id}"></div>`:""}
+
+      <div class="vacancy">
+        🪑 Vacancy Left: ${vacancy}
+      </div>
+
       <div class="button-row">
         <button class="apply-btn"
-          ${isExpired||alreadyApplied?"disabled":""}
+          ${isExpired||alreadyApplied||vacancy<=0?"disabled":""}
           onclick="applyEvent('${id}')">
-          ${alreadyApplied?"Applied":"Apply"}
+          ${alreadyApplied?"Applied":vacancy<=0?"Full":"Apply"}
         </button>
+
         <button class="save-btn"
           onclick="toggleSave('${id}')">
           ${savedEvents[id]?"★ Saved":"☆ Save"}
         </button>
+
         <button class="info-btn"
           onclick="showInfo('${id}')">ℹ</button>
       </div>
     `;
     container.appendChild(card);
-
-    if(!isExpired) startCountdown(id, deadline);
   });
 }
 
-function startCountdown(id, deadline){
-  const el=document.getElementById(`timer-${id}`);
-  function update(){
-    const now=new Date();
-    const diff=deadline-now;
-    if(diff<=0){ el.innerHTML="❌ Deadline Passed"; return; }
-    const d=Math.floor(diff/(1000*60*60*24));
-    const h=Math.floor((diff/(1000*60*60))%24);
-    const m=Math.floor((diff/(1000*60))%60);
-    const s=Math.floor((diff/1000)%60);
-    el.innerHTML=`⏳ ${d}d ${h}h ${m}m ${s}s`;
-  }
-  update();
-  setInterval(update,1000);
-}
-
+/* APPLY */
 window.applyEvent=async function(id){
   const newRef=push(ref(db,"applications"));
   await set(newRef,{
@@ -323,25 +251,21 @@ window.applyEvent=async function(id){
   });
 };
 
+/* SAVE */
 window.toggleSave=async function(id){
   const saveRef=ref(db,"savedEvents/"+currentUser.uid+"/"+id);
   if(savedEvents[id]) await set(saveRef,null);
   else await set(saveRef,true);
 };
 
-window.showInfo=function(id){
-  const e=allEvents[id];
-  let details="<h3>"+e.title+"</h3>";
-  Object.entries(e).forEach(([key,value])=>{
-    details+=`<p><b>${key}:</b> ${value}</p>`;
-  });
-  document.getElementById("modalContent").innerHTML=details;
-  document.getElementById("infoModal").style.display="flex";
-};
-
-window.closeModal=function(){
-  document.getElementById("infoModal").style.display="none";
-};
+/* SAVED TOGGLE */
+viewSavedBtn.addEventListener("click", () => {
+  showSavedOnly = !showSavedOnly;
+  viewSavedBtn.innerText = showSavedOnly
+    ? "🔙 Back to All Events"
+    : "⭐ View Saved Events";
+  render();
+});
 
 </script>
 
