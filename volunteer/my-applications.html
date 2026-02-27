@@ -4,42 +4,61 @@
   <title>My Applications | SevaSphere</title>
 
 <style>
-:root{
- --primary:#4F57D9;
- --secondary:#3D5AF1;
- --teal:#52B69A;
- --lime:#C6F36A;
- --dark:#1F2937;
+
+:root {
+  /* Brand Identity */
+  --primary-bold: #8B5CF6;  /* Creative Violet */
+  --accent-warm: #FB7185;   /* Human Rose */
+  --highlight-sun: #FBBF24; /* Action Amber */
+
+  /* Neutral & UI */
+  --bg-soft: #FFFBEB;       
+  --text-main: #1E293B;     
+  --text-muted: #64748B;    
+  
+  /* Utilities */
+  --white: #FFFFFF;
 }
+
+/* ===== Base Layout ===== */
 
 body{
   font-family:'Segoe UI',sans-serif;
-  background:linear-gradient(135deg,var(--primary),var(--secondary));
+  background: var(--bg-soft);
   padding:40px;
   margin:0;
   min-height:100vh;
+  color:var(--text-main);
 }
+
+/* ===== Top Bar ===== */
 
 .top-bar{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  margin-bottom:25px;
+  margin-bottom:30px;
 }
 
 h2{
-  color:white;
   margin:0;
+  font-weight:700;
+  color:var(--primary-bold);
 }
 
 .back-btn{
-  background:var(--lime);
-  color:var(--dark);
+  background:var(--primary-bold);
+  color:var(--white);
   border:none;
   padding:10px 18px;
   border-radius:12px;
   font-weight:600;
   cursor:pointer;
+  transition:0.2s ease;
+}
+
+.back-btn:hover{
+  background:var(--accent-warm);
 }
 
 /* ===== Stats ===== */
@@ -52,22 +71,24 @@ h2{
 }
 
 .stat-card{
-  background:white;
+  background:var(--white);
   padding:20px;
   border-radius:18px;
   text-align:center;
-  box-shadow:0 12px 30px rgba(0,0,0,0.12);
+  box-shadow:0 10px 25px rgba(0,0,0,0.08);
+  border-top:4px solid var(--primary-bold);
 }
 
 .stat-card h3{
   margin:0;
-  color:var(--primary);
+  font-size:26px;
+  color:var(--primary-bold);
 }
 
 .stat-card p{
-  margin:5px 0 0;
+  margin:6px 0 0;
   font-weight:600;
-  color:var(--dark);
+  color:var(--text-muted);
 }
 
 /* ===== Controls ===== */
@@ -83,26 +104,48 @@ h2{
 .controls select{
   padding:12px 15px;
   border-radius:12px;
-  border:none;
+  border:1px solid #e2e8f0;
   font-weight:600;
-  box-shadow:0 8px 20px rgba(0,0,0,0.1);
+  background:var(--white);
+  color:var(--text-main);
+  box-shadow:0 6px 15px rgba(0,0,0,0.05);
+  transition:0.2s ease;
 }
 
-/* ===== Cards ===== */
+.controls input:focus,
+.controls select:focus{
+  outline:none;
+  border-color:var(--primary-bold);
+}
+
+/* ===== Application Cards ===== */
 
 .app-card{
-  background:white;
+  background:var(--white);
   padding:25px;
   border-radius:20px;
   margin-bottom:20px;
-  box-shadow:0 15px 35px rgba(0,0,0,0.12);
-  border-left:6px solid var(--teal);
+  box-shadow:0 12px 30px rgba(0,0,0,0.08);
+  border-left:6px solid var(--primary-bold);
+  transition:0.25s ease;
+}
+
+.app-card:hover{
+  transform:translateY(-4px);
+  box-shadow:0 18px 40px rgba(0,0,0,0.12);
 }
 
 .app-card h3{
   margin-top:0;
-  color:var(--primary);
+  color:var(--primary-bold);
 }
+
+.app-card p{
+  margin:8px 0;
+  color:var(--text-main);
+}
+
+/* ===== Status Badges ===== */
 
 .status{
   padding:6px 14px;
@@ -111,26 +154,48 @@ h2{
   font-size:13px;
 }
 
-.pending{ background:#fef9c3; color:#92400e; }
-.accepted{ background:var(--lime); color:var(--dark); }
-.rejected{ background:#fee2e2; color:#991b1b; }
+.pending{ 
+  background:var(--highlight-sun);
+  color:#78350f; 
+}
+
+.accepted{ 
+  background:#DCFCE7;
+  color:#166534;
+}
+
+.rejected{ 
+  background:#FEE2E2;
+  color:#991B1B;
+}
+
+/* ===== Cancel Button ===== */
 
 .cancel-btn{
   margin-top:15px;
-  background:#fee2e2;
-  color:#991b1b;
+  background:var(--accent-warm);
+  color:var(--white);
   border:none;
   padding:8px 14px;
   border-radius:10px;
   cursor:pointer;
   font-weight:600;
+  transition:0.2s ease;
 }
 
+.cancel-btn:hover{
+  opacity:0.9;
+}
+
+/* ===== Empty State ===== */
+
 .no-app{
-  background:white;
+  background:var(--white);
   padding:40px;
   border-radius:20px;
   text-align:center;
+  color:var(--text-muted);
+  box-shadow:0 10px 25px rgba(0,0,0,0.08);
 }
 
 </style>
