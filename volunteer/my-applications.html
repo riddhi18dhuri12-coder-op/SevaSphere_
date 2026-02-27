@@ -16,7 +16,9 @@
   --white:#FFFFFF;
 }
 
-/* ===== FUN DOODLE BACKGROUND ===== */
+/* ===============================
+   Base Layout + Soft Floral BG
+================================ */
 
 body{
   font-family:'Segoe UI',sans-serif;
@@ -24,18 +26,28 @@ body{
   margin:0;
   min-height:100vh;
   color:var(--text-dark);
-
+  position:relative;
   background-color:#fff;
-
-  /* subtle doodle pattern using gradients */
-  background-image:
-    radial-gradient(circle at 10% 20%, rgba(246,196,92,0.15) 0px, transparent 120px),
-    radial-gradient(circle at 85% 30%, rgba(219,62,140,0.15) 0px, transparent 150px),
-    radial-gradient(circle at 20% 80%, rgba(102,165,237,0.15) 0px, transparent 150px),
-    radial-gradient(circle at 80% 85%, rgba(255,175,235,0.18) 0px, transparent 120px);
+  overflow-x:hidden;
 }
 
-/* ===== Top Bar ===== */
+/* Soft Floral Overlay */
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:-1;
+  opacity:0.06;
+
+  background-image: url("data:image/svg+xml,%3Csvg width='400' height='400' viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23DB3E8C'%3E%3Ccircle cx='50' cy='50' r='18'/%3E%3Ccircle cx='60' cy='40' r='18'/%3E%3Ccircle cx='40' cy='40' r='18'/%3E%3Ccircle cx='50' cy='30' r='18'/%3E%3C/g%3E%3Cg fill='%2366A5ED'%3E%3Ccircle cx='250' cy='250' r='15'/%3E%3Ccircle cx='265' cy='235' r='15'/%3E%3Ccircle cx='235' cy='235' r='15'/%3E%3Ccircle cx='250' cy='220' r='15'/%3E%3C/g%3E%3C/svg%3E");
+
+  background-repeat:repeat;
+  background-size:320px;
+}
+
+/* ===============================
+   Top Bar
+================================ */
 
 .top-bar{
   display:flex;
@@ -67,7 +79,9 @@ h2{
   background:var(--lavender-violet);
 }
 
-/* ===== Stats ===== */
+/* ===============================
+   Stats Section
+================================ */
 
 .stats{
   display:grid;
@@ -112,7 +126,9 @@ h2{
   font-weight:600;
 }
 
-/* ===== Controls ===== */
+/* ===============================
+   Controls (Search, Filter, Sort)
+================================ */
 
 .controls{
   display:flex;
@@ -138,7 +154,9 @@ h2{
   border-color:var(--ruddy-blue);
 }
 
-/* ===== Application Cards ===== */
+/* ===============================
+   Application Cards
+================================ */
 
 .app-card{
   background:var(--white);
@@ -165,7 +183,9 @@ h2{
   margin:8px 0;
 }
 
-/* ===== Status Badges ===== */
+/* ===============================
+   Status Badges
+================================ */
 
 .status{
   padding:6px 14px;
@@ -189,7 +209,9 @@ h2{
   color:var(--white);
 }
 
-/* ===== Cancel Button ===== */
+/* ===============================
+   Cancel Button
+================================ */
 
 .cancel-btn{
   margin-top:15px;
@@ -208,7 +230,9 @@ h2{
   color:var(--white);
 }
 
-/* ===== Empty State ===== */
+/* ===============================
+   Empty State
+================================ */
 
 .no-app{
   background:var(--white);
