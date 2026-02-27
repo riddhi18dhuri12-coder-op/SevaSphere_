@@ -215,7 +215,15 @@ import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/
 import { getDatabase, ref, onValue, push, set }
 from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
 
-const firebaseConfig = { /* your config */ };
+const firebaseConfig = {
+  apiKey: "AIzaSyA-z1Zx-0qAj6_FGiclcXFdIjiKSjXlUKw",
+  authDomain: "sevasphere-6dce7.firebaseapp.com",
+  databaseURL: "https://sevasphere-6dce7-default-rtdb.asia-southeast1.firebasedatabase.app/",
+  projectId: "sevasphere-6dce7",
+  storageBucket: "sevasphere-6dce7.appspot.com",
+  messagingSenderId: "930986469572",
+  appId: "1:930986469572:web:7c62c3e6ff7c3f90d98191"
+}
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
