@@ -207,12 +207,11 @@ input,select{
     <div id="modalContent"></div>
   </div>
 </div>
-
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-import { getDatabase, ref, onValue, push, set }
+import { getDatabase, ref, onValue, push, set, remove }
 from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
 
 const firebaseConfig = {
@@ -264,6 +263,45 @@ function loadData(){
   });
 }
 
+/* ================= APPLY FUNCTION FIXED ================= */
+
+window.applyEvent = function(id){
+
+  if(!currentUser) return;
+
+  const alreadyApplied = Object.values(applications)
+    .some(app => app.eventId===id && app.volunteerId===currentUser.uid);
+
+  if(alreadyApplied){
+    alert("You already applied for this event.");
+    return;
+  }
+
+  const newRef = push(ref(db,"applications"));
+
+  set(newRef,{
+    eventId:id,
+    volunteerId:currentUser.uid,
+    status:"Pending",
+    appliedAt:new Date().toISOString()
+  });
+};
+
+/* ================= SAVE FUNCTION FIXED ================= */
+
+window.toggleSave = function(id){
+
+  if(!currentUser) return;
+
+  const saveRef = ref(db,"savedEvents/"+currentUser.uid+"/"+id);
+
+  if(savedEvents[id]){
+    remove(saveRef);
+  } else {
+    set(saveRef,true);
+  }
+};
+
 function populateFilters(){
   const cats=new Set(), cities=new Set();
   Object.values(allEvents).forEach(e=>{
@@ -275,6 +313,8 @@ function populateFilters(){
   cats.forEach(c=>categoryFilter.innerHTML+=`<option>${c}</option>`);
   cities.forEach(c=>cityFilter.innerHTML+=`<option>${c}</option>`);
 }
+
+/* ======= YOUR RENDER FUNCTION UNCHANGED BELOW ======= */
 
 function render(){
 
@@ -367,6 +407,7 @@ function startCountdown(){
     });
   },1000);
 }
+
 
 window.showInfo=function(id){
   const event=allEvents[id];
