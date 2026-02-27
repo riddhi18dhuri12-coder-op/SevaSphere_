@@ -2,15 +2,20 @@
 <html>
 <head>
   <title>My Applications | SevaSphere</title>
+
 <style>
 
 :root{
-  --primary:#2AB0A3;        /* Main Teal */
-  --primary-dark:#1F7F75;   /* Dark Teal */
-  --primary-soft:#D8F3F0;   /* Soft Teal Background */
-  --bg:#F4F7F8;             /* Clean Light Background */
-  --text-dark:#1F2937;
-  --text-muted:#6B7280;
+  --primary:#2AB0A3;
+  --primary-dark:#1F7F75;
+  --primary-soft:#E6FAF8;
+
+  --bg:#F4F7F8;
+  --glass-bg:rgba(255,255,255,0.75);
+
+  --text-dark:#111827;
+  --text-body:#1F2937;
+
   --white:#FFFFFF;
 }
 
@@ -42,7 +47,7 @@ h2{
   margin:0;
   font-size:26px;
   font-weight:700;
-  color:var(--primary-dark);
+  color:var(--text-dark);
 }
 
 .back-btn{
@@ -50,7 +55,7 @@ h2{
   color:var(--white);
   border:none;
   padding:10px 18px;
-  border-radius:10px;
+  border-radius:8px;
   font-weight:600;
   cursor:pointer;
   transition:0.2s ease;
@@ -61,7 +66,7 @@ h2{
 }
 
 /* ===============================
-   Stats Section
+   Stats (Glass)
 ================================ */
 
 .stats{
@@ -72,11 +77,13 @@ h2{
 }
 
 .stat-card{
-  background:var(--white);
+  background:var(--glass-bg);
+  backdrop-filter:blur(10px);
+  border:1px solid rgba(255,255,255,0.4);
   padding:20px;
-  border-radius:14px;
+  border-radius:16px;
   text-align:center;
-  box-shadow:0 8px 25px rgba(0,0,0,0.05);
+  box-shadow:0 10px 30px rgba(0,0,0,0.05);
   border-top:4px solid var(--primary);
   transition:0.2s ease;
 }
@@ -87,15 +94,15 @@ h2{
 
 .stat-card h3{
   margin:0;
-  font-size:26px;
+  font-size:24px;
   font-weight:700;
-  color:var(--primary-dark);
+  color:var(--text-dark);
 }
 
 .stat-card p{
   margin:6px 0 0;
   font-weight:600;
-  color:var(--text-muted);
+  color:var(--text-body);
 }
 
 /* ===============================
@@ -104,15 +111,16 @@ h2{
 
 .controls{
   display:flex;
-  gap:15px;
+  gap:12px;
   flex-wrap:wrap;
   margin-bottom:30px;
+  align-items:center;
 }
 
 .controls input,
 .controls select{
   padding:10px 14px;
-  border-radius:10px;
+  border-radius:8px;
   border:1px solid #e5e7eb;
   font-weight:500;
   background:var(--white);
@@ -127,14 +135,30 @@ h2{
   box-shadow:0 0 0 2px rgba(42,176,163,0.2);
 }
 
+.clear-btn{
+  background:#e5e7eb;
+  border:none;
+  padding:10px 14px;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:600;
+  color:var(--text-dark);
+}
+
+.clear-btn:hover{
+  background:#d1d5db;
+}
+
 /* ===============================
-   Application Cards
+   Application Cards (Glass)
 ================================ */
 
 .app-card{
-  background:var(--white);
+  background:var(--glass-bg);
+  backdrop-filter:blur(12px);
+  border:1px solid rgba(255,255,255,0.4);
   padding:22px;
-  border-radius:16px;
+  border-radius:18px;
   margin-bottom:18px;
   box-shadow:0 10px 30px rgba(0,0,0,0.05);
   border-left:5px solid var(--primary);
@@ -149,12 +173,12 @@ h2{
   margin-top:0;
   font-size:18px;
   font-weight:600;
-  color:var(--primary-dark);
+  color:var(--text-dark);
 }
 
 .app-card p{
   margin:6px 0;
-  color:var(--text-muted);
+  color:var(--text-body);
 }
 
 /* ===============================
@@ -196,7 +220,6 @@ h2{
   border-radius:8px;
   cursor:pointer;
   font-weight:600;
-  transition:0.2s ease;
 }
 
 .cancel-btn:hover{
@@ -208,12 +231,13 @@ h2{
 ================================ */
 
 .no-app{
-  background:var(--white);
+  background:var(--glass-bg);
+  backdrop-filter:blur(10px);
   padding:40px;
   border-radius:16px;
   text-align:center;
   box-shadow:0 8px 25px rgba(0,0,0,0.05);
-  color:var(--text-muted);
+  color:var(--text-body);
 }
 
 </style>
@@ -226,7 +250,7 @@ h2{
   <button class="back-btn" onclick="goBack()">⬅ Back to Dashboard</button>
 </div>
 
-<!-- ===== Dashboard Stats ===== -->
+<!-- ===== Stats ===== -->
 <div class="stats">
   <div class="stat-card">
     <h3 id="totalCount">0</h3>
@@ -261,6 +285,8 @@ h2{
     <option value="newest">Newest First</option>
     <option value="oldest">Oldest First</option>
   </select>
+
+  <button class="clear-btn" id="clearFilters">Clear Filters</button>
 </div>
 
 <div id="applicationsContainer"></div>
@@ -273,7 +299,7 @@ import { getDatabase, ref, onValue, remove }
 from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
 
 const firebaseConfig = {
- apiKey: "AIzaSyA-z1Zx-0qAj6_FGiclcXFdIjiKSjXlUKw",
+  apiKey: "AIzaSyA-z1Zx-0qAj6_FGiclcXFdIjiKSjXlUKw",
   authDomain: "sevasphere-6dce7.firebaseapp.com",
   databaseURL: "https://sevasphere-6dce7-default-rtdb.asia-southeast1.firebasedatabase.app/",
   projectId: "sevasphere-6dce7",
@@ -290,6 +316,7 @@ const container=document.getElementById("applicationsContainer");
 const statusFilter=document.getElementById("statusFilter");
 const searchInput=document.getElementById("searchInput");
 const sortSelect=document.getElementById("sortSelect");
+const clearBtn=document.getElementById("clearFilters");
 
 let allEvents={}, allApplications={}, currentUser=null;
 
@@ -323,25 +350,22 @@ function render(){
   let myApps = Object.entries(allApplications)
     .filter(([id,app])=>app.volunteerId===currentUser.uid);
 
-  // ===== Stats Calculation =====
   const total=myApps.length;
   const accepted=myApps.filter(([i,a])=>a.status==="Accepted").length;
   const pending=myApps.filter(([i,a])=>!a.status || a.status==="Pending").length;
   const rejected=myApps.filter(([i,a])=>a.status==="Rejected").length;
 
-  document.getElementById("totalCount").innerText=total;
-  document.getElementById("acceptedCount").innerText=accepted;
-  document.getElementById("pendingCount").innerText=pending;
-  document.getElementById("rejectedCount").innerText=rejected;
+  totalCount.innerText=total;
+  acceptedCount.innerText=accepted;
+  pendingCount.innerText=pending;
+  rejectedCount.innerText=rejected;
 
-  // ===== Filter =====
   if(statusFilter.value!=="All"){
     myApps=myApps.filter(([i,a])=>
       (a.status||"Pending")===statusFilter.value
     );
   }
 
-  // ===== Search =====
   if(searchInput.value){
     myApps=myApps.filter(([i,a])=>{
       const event=allEvents[a.eventId];
@@ -350,7 +374,6 @@ function render(){
     });
   }
 
-  // ===== Sort =====
   myApps.sort((a,b)=>{
     const dateA=new Date(a[1].appliedAt||0);
     const dateB=new Date(b[1].appliedAt||0);
@@ -395,6 +418,13 @@ function render(){
     container.appendChild(div);
   });
 }
+
+clearBtn.addEventListener("click",()=>{
+  searchInput.value="";
+  statusFilter.value="All";
+  sortSelect.value="newest";
+  render();
+});
 
 window.cancelApplication=function(appId){
   if(confirm("Are you sure you want to cancel this application?")){
